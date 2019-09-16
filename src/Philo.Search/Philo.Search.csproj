@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Automatic generation of linq expressions to filter IQueryable. Saves plumbing data grid queries and filters from the front end to Linq statements, these are generated using mapping files.  
+By mapping the query to the data set it offers a layer of abstraction allowing the model to change.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LinqKit" Version="1.1.16" />
+  </ItemGroup>
+
+</Project>
