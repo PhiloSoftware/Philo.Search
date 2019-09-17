@@ -8,17 +8,19 @@ By mapping the query to the data set it offers a layer of abstraction allowing t
     <PackageProjectUrl>https://github.com/PhiloSoftware/Philo.Search</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhiloSoftware/Philo.Search</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LinqKit" Version="1.1.16" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LINQKit.Core" Version="1.1.16" />
   </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Philo.Search
 {
+  [Serializable]
   public class FilterException : Exception
   {
     public FilterException()
@@ -23,7 +24,7 @@ namespace Philo.Search
   }
 
   [Serializable]
-  internal class BadFilterValueException : FilterException
+  public class BadFilterValueException : FilterException
   {
     public BadFilterValueException()
     {
@@ -43,7 +44,7 @@ namespace Philo.Search
   }
 
   [Serializable]
-  internal class BadFilterFieldException : FilterException
+  public class BadFilterFieldException : FilterException
   {
     public BadFilterFieldException()
     {
@@ -62,6 +63,7 @@ namespace Philo.Search
     }
   }
 
+  [Serializable]
   public class BadSortValueException : FilterException
   {
     public BadSortValueException()
@@ -81,6 +83,7 @@ namespace Philo.Search
     }
   }
 
+  [Serializable]
   public class BadFilterComparatorException : FilterException
   {
     public BadFilterComparatorException()
@@ -100,6 +103,7 @@ namespace Philo.Search
     }
   }
 
+  [Serializable]
   public class BadFilterMappingException<T> : FilterException where T : class
   {
     public BadFilterMappingException()

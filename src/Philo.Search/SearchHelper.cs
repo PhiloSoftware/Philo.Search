@@ -89,8 +89,7 @@ namespace Philo.Search
     {
       if (mapping.ReturnType.IsEnum)
       {
-        var ma = mapping as Expression<Func<TEntityType, object>>;
-        return HandleEnum(ma, value, comparator);
+        return HandleEnum(mapping, value, comparator);
       }
 
       object parsedValue;
