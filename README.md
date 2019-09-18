@@ -10,6 +10,31 @@ services.AddScoped<ISearchService, SearchService>();
 
 Inject the ISearchService as you would any other dependency to where you plan on using it. 
 
+Your front end should build the filters, but to test we can create our own:
+```C#
+var filterSet = new FilterSet
+{
+  PageNumber = 1,
+  PageSize = 10,
+  SortBy = "code",
+  SortDir = "desc",
+  Filter = new FilterGroup
+  {
+    Operator = FilterOperator.Or,
+    Filters = new List<Filter>
+    {
+      new Filter
+      {
+        Action = Comparator.Like,
+        Field = "code",
+        Value = "test"
+      }
+    },
+    FilterGroups = new List<FilterGroup>()
+  }
+};
+```
+
 ### EntityFramework 
 ```C#
 var query = dbContext.EntityTypes
