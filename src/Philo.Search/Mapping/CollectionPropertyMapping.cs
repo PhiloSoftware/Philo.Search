@@ -9,11 +9,11 @@ namespace Philo.Search.Mapping
     where TEntityType : class
     where TCollectionEntityType : class
   {
-    private readonly ICollectionFilterIntermediate<TEntityType, TCollectionEntityType> collection;
+    private readonly ICollectionAggregation<TEntityType, TCollectionEntityType> collection;
     private readonly Expression<Func<TCollectionEntityType, TPropertyType>> property;
 
     internal CollectionPropertyMapping(
-      ICollectionFilterIntermediate<TEntityType, TCollectionEntityType> collection,
+      ICollectionAggregation<TEntityType, TCollectionEntityType> collection,
       Expression<Func<TCollectionEntityType, TPropertyType>> property
     )
     {

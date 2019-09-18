@@ -16,7 +16,7 @@ namespace Philo.Search.Mapping
     /// <param name="collection"></param>
     /// <param name="collectionExpression"></param>
     /// <returns></returns>
-    public static ICollectionFilterIntermediate<TRootEntityType, TCollectionEntityType>
+    public static ICollectionAggregation<TRootEntityType, TCollectionEntityType>
       Any<TRootEntityType, TCollectionEntityType>(
       this CollectionMapping<TRootEntityType> collectionRootMapping,
       Expression<Func<TRootEntityType, ICollection<TCollectionEntityType>>> collectionExpression
@@ -24,8 +24,8 @@ namespace Philo.Search.Mapping
       where TRootEntityType : class
       where TCollectionEntityType : class
     {
-      return new CollectionExpression<TRootEntityType, TRootEntityType, TCollectionEntityType>(
-        CollectionOperation.Any,
+      return new CollectionAggregation<TRootEntityType, TRootEntityType, TCollectionEntityType>(
+        AggregateOperation.Any,
         collectionRootMapping,
         collectionExpression
       );
@@ -41,17 +41,17 @@ namespace Philo.Search.Mapping
     /// <param name="collection"></param>
     /// <param name="collectionExpression"></param>
     /// <returns></returns>
-    public static ICollectionFilterIntermediate<TRootEntityType, TCollectionEntityCollectionType>
+    public static ICollectionAggregation<TRootEntityType, TCollectionEntityCollectionType>
       Any<TRootEntityType, TCollectionEntityType, TCollectionEntityCollectionType>(
-      this ICollectionFilterIntermediate<TRootEntityType, TCollectionEntityType> collection,
+      this ICollectionAggregation<TRootEntityType, TCollectionEntityType> collection,
       Expression<Func<TCollectionEntityType, ICollection<TCollectionEntityCollectionType>>> collectionExpression
     )
       where TRootEntityType : class
       where TCollectionEntityType : class
       where TCollectionEntityCollectionType : class
     {
-      return new CollectionExpression<TRootEntityType, TCollectionEntityType, TCollectionEntityCollectionType>(
-        CollectionOperation.Any,
+      return new CollectionAggregation<TRootEntityType, TCollectionEntityType, TCollectionEntityCollectionType>(
+        AggregateOperation.Any,
         collection,
         collectionExpression
       );
@@ -67,7 +67,7 @@ namespace Philo.Search.Mapping
     /// <param name="cpop">The expression to the property</param>
     /// <returns>A mapping object from <typeparamref name="TEntityType"/> to <typeparamref name="TPropType"/></returns>
     public static CollectionPropertyMapping<TEntityType, TCollectionEntityType, TPropType> Property<TEntityType, TCollectionEntityType, TPropType>(
-      this ICollectionFilterIntermediate<TEntityType, TCollectionEntityType> collection,
+      this ICollectionAggregation<TEntityType, TCollectionEntityType> collection,
       Expression<Func<TCollectionEntityType, TPropType>> cpop
     )
       where TEntityType : class

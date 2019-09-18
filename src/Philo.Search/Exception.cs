@@ -64,6 +64,18 @@ namespace Philo.Search
   }
 
   [Serializable]
+  public class BadSortFieldException : FilterException
+  {
+    internal BadSortFieldException(string message) : base(message)
+    {
+    }
+
+    protected internal BadSortFieldException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
+    }
+  }
+
+  [Serializable]
   public class BadSortValueException : FilterException
   {
     public BadSortValueException()

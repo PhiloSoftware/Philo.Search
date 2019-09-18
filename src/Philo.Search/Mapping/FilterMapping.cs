@@ -16,13 +16,19 @@ namespace Philo.Search.Mapping
       Field = field;
       Mapping = mapping;
 
-      var memberExpression = mapping.Body as MemberExpression;
-      var binaryExpression = mapping.Body as BinaryExpression;
-      if ((binaryExpression == null && memberExpression == null)
-        || (memberExpression != null && memberExpression.Member.MemberType != MemberTypes.Property))
-      {
-        throw new NotSupportedException("Expression must be member expression and refer to a property");
-      }
+      //var memberExpression = mapping.Body as MemberExpression;
+      //var binaryExpression = mapping.Body as BinaryExpression;
+      //var methodExpression = mapping.Body as MethodCallExpression;
+
+      //if (memberExpression == null && binaryExpression == null && methodExpression == null)
+      //{
+      //  throw new NotSupportedException("Expression type is not currently suppor");
+      //}
+      //if ((binaryExpression == null && memberExpression == null)
+      //  || (memberExpression != null && memberExpression.Member.MemberType != MemberTypes.Property))
+      //{
+      //  throw new NotSupportedException("Expression must be member expression and refer to a property");
+      //}
     }
 
     public string Field { get; set; }

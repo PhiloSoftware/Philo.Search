@@ -16,11 +16,26 @@ namespace Philo.Search
     /// <param name="query">The Queryable data set</param>
     /// <param name="filter">Filters to apply to the dataset</param>
     /// <param name="mappings">Mapping instructions for filters</param>
-    /// <returns></returns>
+    /// <returns>The results that match the <paramref name="filter"/></returns>  
     SearchResult<TEntityType> DoSearch<TEntityType>(
       IQueryable<TEntityType> query,
        FilterSet filter,
        List<IMapAFilter<TEntityType>> mappings
+     ) where TEntityType : class;
+
+    /// <summary>
+    /// Apply the filter to the queryable and return the 
+    /// results.
+    /// </summary>
+    /// <typeparam name="TEntityType">Entity Type that is being queried</typeparam>
+    /// <param name="query">The Queryable data set</param>
+    /// <param name="filter">Filters to apply to the dataset</param>
+    /// <param name="mappings">Mapping instructions for filters</param>  
+    /// <returns>The results that match the <paramref name="filter"/></returns>  
+    SearchResult<TEntityType> DoSearch<TEntityType>(
+      IQueryable<TEntityType> query,
+       FilterSet filter,
+       MappingCollection<TEntityType> mappings
      ) where TEntityType : class;
   }
 
@@ -29,7 +44,7 @@ namespace Philo.Search
     public SearchResult<TEntityType> DoSearch<TEntityType>(
       IQueryable<TEntityType> query,
       FilterSet filter,
-      List<IMapAFilter<TEntityType>> mappings
+      MappingCollection<TEntityType> mappings
     ) where TEntityType : class
     {
       if (filter.PageNumber < 1) filter.PageNumber = 1;
@@ -54,35 +69,37 @@ namespace Philo.Search
       };
     }
 
-    private IQueryable<TEntityType> ApplySort<TEntityType>(
+    public SearchResult<TEntityType> DoSearch<TEntityType>(
       IQueryable<TEntityType> query,
       FilterSet filter,
       List<IMapAFilter<TEntityType>> mappings
     ) where TEntityType : class
     {
+      var mappingDef = new MappingCollection<TEntityType>(mappings);
+
+      return DoSearch(query, filter, mappingDef);
+    }
+
+    private IQueryable<TEntityType> ApplySort<TEntityType>(
+      IQueryable<TEntityType> query,
+      FilterSet filter,
+      MappingCollection<TEntityType> mappings
+    ) where TEntityType : class
+    {
       var isDescending = filter.SortDir == "desc";
+      var isAscending = filter.SortDir == "asc";
+
+      bool? selectedSort = isDescending ? true : (isAscending ? false : (bool?)null);
+
       if (!string.IsNullOrWhiteSpace(filter.SortBy))
       {
-        var mapping = mappings
-          .FirstOrDefault(m => m.Field == filter.SortBy);
+        var mapping = mappings.GetMapping(filter.SortBy);
 
-        if (mapping == null)
-        {
-          throw new BadSortValueException($"Field {filter.SortBy} does not exist");
-        }
-
-        return mapping.ApplySort(query, isDescending);
+        return mapping.ApplySort(query, selectedSort ?? mappings.DefaultSort.Descending);
       }
 
-      var defaultSort = mappings
-        .FirstOrDefault(m => m.IsDefaultSortFilter);
-
-      if (defaultSort != null)
-      {
-        return defaultSort.ApplySort(query, isDescending);
-      }
-
-      throw new BadSortValueException($"Please provide the SortBy field");
+      var defaultSort = mappings.DefaultSort;
+      return defaultSort.Mapping.ApplySort(query, selectedSort ?? mappings.DefaultSort.Descending);
     }
   }
 

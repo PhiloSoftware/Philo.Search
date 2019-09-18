@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Philo.Search.Mapping
 {
-  internal enum CollectionOperation
+  internal enum AggregateOperation
   {
     Any = 0
   }
@@ -16,20 +16,20 @@ namespace Philo.Search.Mapping
   /// </summary>
   /// <typeparam name="TRootEntityType">The type of the root entity being queried</typeparam>
   /// <typeparam name="TCollectionEntityType">The Entity within the collection</typeparam>
-  internal class CollectionExpression<TRootEntityType, TCollectionEntityType, TSubCollectionType>
-    : ICollectionFilterIntermediate<TRootEntityType, TSubCollectionType>
+  internal class CollectionAggregation<TRootEntityType, TCollectionEntityType, TSubCollectionType>
+    : ICollectionAggregation<TRootEntityType, TSubCollectionType>
     where TRootEntityType : class
     where TCollectionEntityType : class
     where TSubCollectionType : class
   {
-    private readonly CollectionOperation operation;
-    private readonly ICollectionFilterIntermediate<TRootEntityType, TCollectionEntityType> collection;
+    private readonly AggregateOperation operation;
+    private readonly ICollectionAggregation<TRootEntityType, TCollectionEntityType> collection;
     private readonly CollectionMapping<TRootEntityType> collectionMapping;
     private readonly Expression<Func<TCollectionEntityType, ICollection<TSubCollectionType>>> collectionExpression;
 
-    internal CollectionExpression(
-      CollectionOperation operation,
-      ICollectionFilterIntermediate<TRootEntityType, TCollectionEntityType> collection,
+    internal CollectionAggregation(
+      AggregateOperation operation,
+      ICollectionAggregation<TRootEntityType, TCollectionEntityType> collection,
       Expression<Func<TCollectionEntityType, ICollection<TSubCollectionType>>> collectionExpression)
     {
       this.collectionMapping = null;
@@ -38,8 +38,8 @@ namespace Philo.Search.Mapping
       this.collectionExpression = collectionExpression;
     }
 
-    internal CollectionExpression(
-      CollectionOperation operation,
+    internal CollectionAggregation(
+      AggregateOperation operation,
       CollectionMapping<TRootEntityType> collectionMapping,
       Expression<Func<TCollectionEntityType, ICollection<TSubCollectionType>>> collectionExpression)
     {
@@ -66,7 +66,7 @@ namespace Philo.Search.Mapping
       Expression finalExpression;
       switch (operation)
       {
-        case CollectionOperation.Any:
+        case AggregateOperation.Any:
           // public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate);
           var anyMethod = typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
                       .First(m => m.Name == "Any" && m.GetParameters().Count() == 2)

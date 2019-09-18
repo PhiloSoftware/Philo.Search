@@ -13,14 +13,14 @@ namespace Philo.Search
   {
     public static Expression<Func<T, bool>>
         CreateSearchPredicate<T>(FilterSet filterSet,
-        List<IMapAFilter<T>> mappings
+        MappingCollection<T> mappings
       ) where T : class
     {
       return GetExpression<T>(mappings, filterSet.Filter);
     }
 
     private static Expression<Func<T, bool>> GetExpression<T>(
-      List<IMapAFilter<T>> mappings,
+      MappingCollection<T> mappings,
       FilterGroup filterGroup
     ) where T : class
     {
@@ -29,13 +29,7 @@ namespace Philo.Search
 
       foreach (var filter in filterGroup.Filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
       {
-        var mapping = mappings.FirstOrDefault(m => m.Field == filter.Field);
-
-        if (mapping == null)
-        {
-          // todo throw exception so consumer knows their filters aren't being applied
-          throw new BadFilterFieldException($"{filter.Field} is not known");
-        }
+        var mapping = mappings.GetMapping(filter.Field);
 
         var expression = mapping.GetFilterLambda(filter.Value, filter.Action);
 
@@ -93,6 +87,8 @@ namespace Philo.Search
       }
 
       object parsedValue;
+
+
       switch (mapping.ReturnType.Name)
       {
         case nameof(Guid):
@@ -102,13 +98,15 @@ namespace Philo.Search
           parsedValue = value;
           break;
         case nameof(Int32):
-          if (!int.TryParse(value, out int parsedInt))
           {
-            return null;
-          }
+            if (!int.TryParse(value, out int parsedInt))
+            {
+              return null;
+            }
 
-          parsedValue = parsedInt;
-          break;
+            parsedValue = parsedInt;
+            break;
+          }
         case nameof(Boolean):
           {
             if (!bool.TryParse(value, out bool parsedBool))
@@ -117,6 +115,16 @@ namespace Philo.Search
             }
 
             parsedValue = parsedBool;
+            break;
+          }
+        case nameof(Double):
+          {
+            if (!double.TryParse(value, out double parsedDouble))
+            {
+              return null;
+            }
+
+            parsedValue = parsedDouble;
             break;
           }
         default:
@@ -139,17 +147,26 @@ namespace Philo.Search
           theOperation = Expression.MakeBinary(ExpressionType.LessThan, mapping.Body, filterValue);
           break;
         case Comparator.Like:
-          if (mapping.ReturnType != typeof(string))
           {
-            throw new BadFilterComparatorException($"Field cannot use the {comparator} comparator");
+            Expression valueExpression;
+            if (mapping.ReturnType == typeof(string))
+            {
+              // coalesce the string value to an empty string if null
+              valueExpression = Expression.Coalesce(mapping.Body, Expression.Constant(string.Empty));
+            }
+            else
+            {
+              var stringifyed = typeof(object).GetMethod("ToString");
+
+              valueExpression = Expression.Call(mapping.Body, stringifyed);
+            }
+
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string), typeof(StringComparison) });
+
+            Expression stringFilter = Expression.Constant(parsedValue.ToString());
+            theOperation = Expression.Call(valueExpression, containsMethod, stringFilter, Expression.Constant(StringComparison.InvariantCultureIgnoreCase));
+            break;
           }
-
-          MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string), typeof(StringComparison) });
-
-          // coalesce the string value to an empty string if null
-          var nullCoalesce = Expression.Coalesce(mapping.Body, Expression.Constant(string.Empty));
-          theOperation = Expression.Call(nullCoalesce, containsMethod, filterValue, Expression.Constant(StringComparison.InvariantCultureIgnoreCase));
-          break;
         default:
           throw new NotSupportedException($"Action {comparator} is not supported yet");
       }
@@ -254,7 +271,8 @@ namespace Philo.Search
       {
         var res = Enum.Parse(typeof(TEnumType), value);
         return res;
-      } catch (Exception)
+      }
+      catch (Exception)
       {
         return null;
       }

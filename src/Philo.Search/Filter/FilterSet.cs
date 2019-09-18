@@ -79,7 +79,7 @@ namespace Philo.Search.Filter
 
     public bool HasFilters()
     {
-      return this.Filter.Filters.Any() || Filter.FilterGroups.Any();
+      return Filter != null && ((Filter.Filters != null && Filter.Filters.Any()) || (Filter.FilterGroups != null && Filter.FilterGroups.Any()));
     }
   }
 
