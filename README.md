@@ -83,6 +83,6 @@ new FilterMapping<Customer, int>("paidOrderCount", a => a.Orders.Where(o => o.St
   new CollectionMapping<EntityType>(
     "adminUserName"
   )
-  .Any(et => et.Users.Where(u => u.Role = UserRole.Admin))
+  .Any(et => et.Users.Where(u => u.Role == UserRole.Admin))
   .Property(u => u.FirstName + " " + u.LastName)
 ```
