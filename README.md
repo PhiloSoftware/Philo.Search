@@ -1,5 +1,5 @@
 # Philo.Search
-Automated filter and sort of Queryable objects. Useful for automatically generating the Where clause of an IQuerable such as for Entity Framework.
+Automated filter and sort of Queryable objects. Useful for automatically generating the Where clause of an IQueryable such as for LINQ to SQL.
 
 
 ## Setup  
@@ -8,7 +8,7 @@ Add the search service to your Startup.cs
 services.AddScoped<ISearchService, SearchService>();
 ```
 
-Inject the ISearchService as you would any other dependency. 
+Inject the ISearchService as you would any other dependency to where you plan on using it. 
 
 ### EntityFramework 
 ```C#
