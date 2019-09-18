@@ -32,11 +32,11 @@ public List<IMapAFilter<EntityType>> GetMappings()
         new FilterMapping<EntityType, string>("description", et => et.Description),
         // you can construct simple computed fields
         new FilterMapping<EntityType, string>("fullName", et => u.Code + " " + u.Description),
-        new CollectionFilterMapping<EntityType, RelatedEntityType, string>(
-          "userName",
-          CollectionOperation.Any,
-          et => et.Users,
-          u => u.FirstName + " " + u.LastName
-        ),
+        // Map Collections
+        new CollectionMapping<EntityType>(
+          "userName"
+        )
+        .Any(et => et.Users)
+        .Property(u => u.FirstName + " " + u.LastName)
       };
     }
