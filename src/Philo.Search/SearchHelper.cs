@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace Philo.Search
 {
-  public static class SearchHelper
+  internal static class SearchHelper
   {
     public static Expression<Func<T, bool>>
         CreateSearchPredicate<T>(FilterSet filterSet,

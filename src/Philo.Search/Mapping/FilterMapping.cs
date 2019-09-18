@@ -40,35 +40,4 @@ namespace Philo.Search.Mapping
       return SearchHelper.GetLambdaExpression<TEntityType, TPropType>(Mapping, value, comparator);
     }
   }
-
-
-  public class BinaryFilter<TEntityType, TPropType> : IMapAFilter<TEntityType> where TEntityType : class
-  {
-    public BinaryFilter(string field, Expression<Func<TEntityType, TPropType>> mapping)
-    {
-      Field = field;
-      Mapping = mapping;
-
-      var binaryExpression = mapping.Body as BinaryExpression;
-      if (binaryExpression == null)
-      {
-        throw new NotSupportedException("Expression must be binary expression");
-      }
-    }
-
-    public string Field { get; set; }
-
-    public bool IsDefaultSortFilter { get; set; } = false;
-    private Expression<Func<TEntityType, TPropType>> Mapping { get; set; }
-
-    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, bool descending)
-    {
-      throw new NotImplementedException();
-    }
-
-    public Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator)
-    {
-      return SearchHelper.GetLambdaExpression<TEntityType, TPropType>(Mapping, value, comparator);
-    }
-  }
 }

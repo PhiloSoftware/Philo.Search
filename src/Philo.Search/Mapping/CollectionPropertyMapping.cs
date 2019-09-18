@@ -12,7 +12,7 @@ namespace Philo.Search.Mapping
     private readonly ICollectionFilterIntermediate<TEntityType, TCollectionEntityType> collection;
     private readonly Expression<Func<TCollectionEntityType, TPropertyType>> property;
 
-    public CollectionPropertyMapping(
+    internal CollectionPropertyMapping(
       ICollectionFilterIntermediate<TEntityType, TCollectionEntityType> collection,
       Expression<Func<TCollectionEntityType, TPropertyType>> property
     )
