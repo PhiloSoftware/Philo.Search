@@ -65,3 +65,24 @@ public List<IMapAFilter<EntityType>> GetMappings()
         .Property(u => u.FirstName + " " + u.LastName)
       };
     }
+```
+
+### Computed Column
+```C#
+new FilterMapping<EntityType, string>("fullName", et => u.Code + " " + u.Description)
+```
+
+### Count a Collection with fixed filter values
+```C#
+// count the number of paid orders a customer has 
+new FilterMapping<Customer, int>("paidOrderCount", a => a.Orders.Where(o => o.Status == OrderStatus.Processing || o.Status == OrderStatus.Processed || o.Status == OrderStatus.InTransit || o.Status == OrderStatus.Delivered).Count()),
+```
+
+### Filter a Collection before Checking Any
+```C#
+  new CollectionMapping<EntityType>(
+    "adminUserName"
+  )
+  .Any(et => et.Users.Where(u => u.Role = UserRole.Admin))
+  .Property(u => u.FirstName + " " + u.LastName)
+```
