@@ -86,69 +86,37 @@ namespace Philo.Search
         return HandleEnum(mapping, value, comparator);
       }
 
-      object parsedValue;
-
-
-      switch (mapping.ReturnType.Name)
+      // convert the string value to the actual type
+      var getConvertedValue = new Func<Expression>(() =>
       {
-        case nameof(Guid):
-          parsedValue = Guid.Parse(value);
-          break;
-        case nameof(String):
-          parsedValue = value;
-          break;
-        case nameof(Int32):
-          {
-            if (!int.TryParse(value, out int parsedInt))
-            {
-              return null;
-            }
+        var returntype = mapping.ReturnType;
 
-            parsedValue = parsedInt;
-            break;
-          }
-        case nameof(Boolean):
-          {
-            if (!bool.TryParse(value, out bool parsedBool))
-            {
-              return null;
-            }
+        var nullable = Nullable.GetUnderlyingType(returntype);
+        if (nullable != null)
+        {
+          returntype = nullable;
+        }
 
-            parsedValue = parsedBool;
-            break;
-          }
-        case nameof(Double):
-          {
-            if (!double.TryParse(value, out double parsedDouble))
-            {
-              return null;
-            }
-
-            parsedValue = parsedDouble;
-            break;
-          }
-        default:
-          throw new NotImplementedException($"Cannot map {mapping.ReturnType.Name} at this time");
-      }
-
-      Expression filterValue = Expression.Constant(parsedValue);
+        return Expression.Constant(Convert.ChangeType(value, returntype));
+      });
 
       Expression theOperation;
-
       switch (comparator)
       {
         case Comparator.Eq:
-          theOperation = Expression.MakeBinary(ExpressionType.Equal, mapping.Body, filterValue);
+          theOperation = Expression.MakeBinary(ExpressionType.Equal, mapping.Body, getConvertedValue());
           break;
         case Comparator.Gt:
-          theOperation = Expression.MakeBinary(ExpressionType.GreaterThan, mapping.Body, filterValue);
+          theOperation = Expression.MakeBinary(ExpressionType.GreaterThan, mapping.Body, getConvertedValue());
           break;
         case Comparator.Lt:
-          theOperation = Expression.MakeBinary(ExpressionType.LessThan, mapping.Body, filterValue);
+          theOperation = Expression.MakeBinary(ExpressionType.LessThan, mapping.Body, getConvertedValue());
           break;
         case Comparator.Like:
           {
+            // if it is a string
             Expression valueExpression;
+
             if (mapping.ReturnType == typeof(string))
             {
               // coalesce the string value to an empty string if null
@@ -156,14 +124,13 @@ namespace Philo.Search
             }
             else
             {
-              var stringifyed = typeof(object).GetMethod("ToString");
-
-              valueExpression = Expression.Call(mapping.Body, stringifyed);
+              // otherwise just ToString it and the LINQ to SQL provider can deal with it
+              valueExpression = Expression.Call(mapping.Body, typeof(object).GetMethod("ToString"));
             }
 
             MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string), typeof(StringComparison) });
 
-            Expression stringFilter = Expression.Constant(parsedValue.ToString());
+            Expression stringFilter = Expression.Constant(value);
             theOperation = Expression.Call(valueExpression, containsMethod, stringFilter, Expression.Constant(StringComparison.InvariantCultureIgnoreCase));
             break;
           }
