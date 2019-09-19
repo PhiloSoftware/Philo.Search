@@ -81,23 +81,37 @@ namespace Philo.Search
       Comparator comparator
     ) where TEntityType : class
     {
-      if (mapping.ReturnType.IsEnum)
+      var returntype = mapping.ReturnType;
+
+      // if it is nullable, lets escape this first up
+      var nullable = Nullable.GetUnderlyingType(returntype);
+      if (nullable != null)
+      {
+        returntype = nullable;
+      }
+
+      // Enums. We do our processing server side as they generally
+      // aren't a DB construct.
+      if (returntype.IsEnum)
       {
         return HandleEnum(mapping, value, comparator);
+      }
+
+      object parsedValue = null;
+      if (returntype == typeof(DateTimeOffset) || returntype == typeof(DateTime))
+      {
+        parsedValue = ParseDateTime(mapping, value, comparator);
       }
 
       // convert the string value to the actual type
       var getConvertedValue = new Func<Expression>(() =>
       {
-        var returntype = mapping.ReturnType;
-
-        var nullable = Nullable.GetUnderlyingType(returntype);
-        if (nullable != null)
+        if (parsedValue != null)
         {
-          returntype = nullable;
+          return Expression.Constant(parsedValue, mapping.ReturnType);
         }
 
-        return Expression.Constant(Convert.ChangeType(value, returntype));
+        return Expression.Constant(Convert.ChangeType(value, returntype), mapping.ReturnType);
       });
 
       Expression theOperation;
@@ -117,7 +131,7 @@ namespace Philo.Search
             // if it is a string
             Expression valueExpression;
 
-            if (mapping.ReturnType == typeof(string))
+            if (returntype == typeof(string))
             {
               // coalesce the string value to an empty string if null
               valueExpression = Expression.Coalesce(mapping.Body, Expression.Constant(string.Empty));
@@ -139,6 +153,49 @@ namespace Philo.Search
       }
 
       return Expression.Lambda<Func<TEntityType, bool>>(theOperation, mapping.Parameters[0]);
+    }
+
+    private static object ParseDateTime<TEntityType, TPropType>(
+      Expression<Func<TEntityType, TPropType>> mapping,
+      string value,
+      Comparator comparator
+    ) where TEntityType : class
+    {
+      if (!DateTimeOffset.TryParse(value, out DateTimeOffset result))
+      {
+        throw new BadFilterValueException($"Value {value} could not be parsed as a date");
+      }
+
+      var propertyType = typeof(TPropType);
+      var nullable = Nullable.GetUnderlyingType(propertyType);
+      if (nullable != null)
+      {
+        if (nullable == typeof(DateTimeOffset))
+        {
+          return (DateTimeOffset?)result;
+        }
+        else if (nullable == typeof(DateTime))
+        {
+          return (DateTime?)result.Date;
+        }
+        else
+        {
+          throw new NotImplementedException("This nullable date cannot be interpreted at this time");
+        }
+      }
+
+      if (propertyType == typeof(DateTimeOffset))
+      {
+        return result;
+      }
+      else if (propertyType == typeof(DateTime))
+      {
+        return result.Date;
+      }
+      else
+      {
+        throw new NotImplementedException("This date type cannot be interpreted at this time");
+      }
     }
 
     private static Expression<Func<TEntityType, bool>> HandleEnum<TEntityType, TPropType>(
