@@ -111,7 +111,19 @@ namespace Philo.Search
           return Expression.Constant(parsedValue, mapping.ReturnType);
         }
 
-        return Expression.Constant(Convert.ChangeType(value, returntype), mapping.ReturnType);
+        if (returntype == typeof(Guid))
+        {
+          return Expression.Constant(Guid.Parse(value));
+        }
+
+        try
+        {
+          return Expression.Constant(Convert.ChangeType(value, returntype), mapping.ReturnType);
+        }
+        catch (InvalidCastException ice)
+        {
+          throw new BadFilterValueException($"Value {value} could not be understood as {returntype.Name}", ice);
+        }
       });
 
       Expression theOperation;
