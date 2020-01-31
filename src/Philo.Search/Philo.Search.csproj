@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Description>Automatic generation of linq expressions to filter IQueryable. Saves plumbing data grid queries and filters from the front end to Linq statements, these are generated using mapping files.
 By explicitly mapping the filter query to the data set it offers a layer of abstraction allowing the model to change, and also dynamic construction of columns instead of polluting your domain.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PhiloSoftware/Philo.Search</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhiloSoftware/Philo.Search</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <Version>1.0.8</Version>
-    <AssemblyVersion>1.0.8.0</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
@@ -21,7 +21,7 @@ By explicitly mapping the filter query to the data set it offers a layer of abst
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LINQKit.Core" Version="1.1.16" />
+    <PackageReference Include="LINQKit.Core" Version="1.1.17" />
   </ItemGroup>
 
 </Project>
