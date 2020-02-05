@@ -25,7 +25,7 @@ namespace Philo.Search.Filter
         {
           Operator = FilterOperator.And,
           Filters = new List<Filter>(),
-          FilterGroups = new FilterGroup[]
+          FilterGroups = new List<FilterGroup>
           {
             new FilterGroup
             {
@@ -64,7 +64,7 @@ namespace Philo.Search.Filter
               Value = value
             }
           },
-          FilterGroups = new FilterGroup[]
+          FilterGroups = new List<FilterGroup>
           {
             new FilterGroup
             {
