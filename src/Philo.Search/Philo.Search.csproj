@@ -8,8 +8,8 @@ By explicitly mapping the filter query to the data set it offers a layer of abst
     <PackageProjectUrl>https://github.com/PhiloSoftware/Philo.Search</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhiloSoftware/Philo.Search</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 

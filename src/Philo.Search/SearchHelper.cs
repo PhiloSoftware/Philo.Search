@@ -135,8 +135,14 @@ namespace Philo.Search
         case Comparator.Gt:
           theOperation = Expression.MakeBinary(ExpressionType.GreaterThan, mapping.Body, getConvertedValue());
           break;
+        case Comparator.GtEq:
+          theOperation = Expression.MakeBinary(ExpressionType.GreaterThanOrEqual, mapping.Body, getConvertedValue());
+          break;
         case Comparator.Lt:
           theOperation = Expression.MakeBinary(ExpressionType.LessThan, mapping.Body, getConvertedValue());
+          break;
+        case Comparator.LtEq:
+          theOperation = Expression.MakeBinary(ExpressionType.LessThanOrEqual, mapping.Body, getConvertedValue());
           break;
         case Comparator.Like:
           {
