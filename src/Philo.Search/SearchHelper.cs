@@ -160,10 +160,10 @@ namespace Philo.Search
               valueExpression = Expression.Call(mapping.Body, typeof(object).GetMethod("ToString"));
             }
 
-            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string), typeof(StringComparison) });
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
             Expression stringFilter = Expression.Constant(value);
-            theOperation = Expression.Call(valueExpression, containsMethod, stringFilter, Expression.Constant(StringComparison.InvariantCultureIgnoreCase));
+            theOperation = Expression.Call(valueExpression, containsMethod, stringFilter);
             break;
           }
         default:
@@ -194,7 +194,7 @@ namespace Philo.Search
         }
         else if (nullable == typeof(DateTime))
         {
-          return (DateTime?)result.Date;
+          return (DateTime?)result.DateTime;
         }
         else
         {
@@ -208,7 +208,7 @@ namespace Philo.Search
       }
       else if (propertyType == typeof(DateTime))
       {
-        return result.Date;
+        return result;
       }
       else
       {
