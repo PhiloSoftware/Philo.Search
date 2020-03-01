@@ -208,7 +208,7 @@ namespace Philo.Search
       }
       else if (propertyType == typeof(DateTime))
       {
-        return result;
+        return result.DateTime;
       }
       else
       {
