@@ -65,7 +65,6 @@ namespace Philo.Search
         TotalResults = query.Count(),
         Results = query.Skip(resIdx)
           .Take(filter.PageSize)
-          .ToList()
       };
     }
 
@@ -105,7 +104,7 @@ namespace Philo.Search
 
   public class SearchResult<T>
   {
-    public List<T> Results { get; set; }
+    public IQueryable<T> Results { get; set; }
     public int TotalResults { get; set; }
   }
 }
