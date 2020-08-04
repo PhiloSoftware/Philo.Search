@@ -111,14 +111,9 @@ namespace Philo.Search
           return Expression.Constant(parsedValue, mapping.ReturnType);
         }
 
-        if (mapping.ReturnType == typeof(Guid?))
-        {
-          return Expression.Constant((Guid?)Guid.Parse(value));
-        }
-
         if (returntype == typeof(Guid))
         {
-          return Expression.Constant(Guid.Parse(value));
+          return Expression.Constant(Guid.Parse(value), mapping.ReturnType);
         }
 
         try
