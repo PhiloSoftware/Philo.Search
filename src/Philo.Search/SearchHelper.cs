@@ -122,9 +122,9 @@ namespace Philo.Search
           return Expression.Constant(value, mapping.ReturnType);
         }
 
-        if (mapping.ReturnType.IsPrimitive && value == null)
+        if (mapping.ReturnType.IsPrimitive && string.IsNullOrWhiteSpace(value))
         {
-          throw new BadFilterValueException($"Value {value} could not be compared to {returntype.Name} for field {searchField}");
+          throw new BadFilterValueException($"Value '{value}' could not be compared to {returntype.Name} for field {searchField}");
         }
 
         try
