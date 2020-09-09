@@ -113,6 +113,7 @@ namespace Philo.Search.Filter
     Lt,
     Like,
     GtEq,
-    LtEq
+    LtEq,
+    NEq
   }
 }

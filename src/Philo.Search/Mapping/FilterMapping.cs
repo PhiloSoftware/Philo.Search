@@ -43,7 +43,7 @@ namespace Philo.Search.Mapping
 
     public Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator)
     {
-      return SearchHelper.GetLambdaExpression<TEntityType, TPropType>(Mapping, value, comparator);
+      return SearchHelper.GetLambdaExpression<TEntityType, TPropType>(Field, Mapping, value, comparator);
     }
   }
 }

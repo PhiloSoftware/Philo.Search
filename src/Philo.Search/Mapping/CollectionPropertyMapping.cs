@@ -33,7 +33,7 @@ namespace Philo.Search.Mapping
 
     public Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator)
     {
-      var propertyPredicate = SearchHelper.GetLambdaExpression<TCollectionEntityType, TPropertyType>(property, value, comparator);
+      var propertyPredicate = SearchHelper.GetLambdaExpression<TCollectionEntityType, TPropertyType>(Field, property, value, comparator);
 
       return this.collection.GetPredicate<TPropertyType>(propertyPredicate);
     }

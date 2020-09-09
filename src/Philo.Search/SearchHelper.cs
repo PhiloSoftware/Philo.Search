@@ -27,7 +27,7 @@ namespace Philo.Search
       var predicate = PredicateBuilder.New<T>(filterGroup.Operator == FilterOperator.And);
       var filterApplied = false;
 
-      foreach (var filter in filterGroup.Filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
+      foreach (var filter in filterGroup.Filters)
       {
         var mapping = mappings.GetMapping(filter.Field);
 
@@ -76,6 +76,7 @@ namespace Philo.Search
     }
 
     public static Expression<Func<TEntityType, bool>> GetLambdaExpression<TEntityType, TPropType>(
+      string searchField,
       Expression<Func<TEntityType, TPropType>> mapping,
       string value,
       Comparator comparator
@@ -116,13 +117,23 @@ namespace Philo.Search
           return Expression.Constant(Guid.Parse(value), mapping.ReturnType);
         }
 
+        if ((nullable != null || !mapping.ReturnType.IsPrimitive) && value == null)
+        {
+          return Expression.Constant(value, mapping.ReturnType);
+        }
+
+        if (mapping.ReturnType.IsPrimitive && value == null)
+        {
+          throw new BadFilterValueException($"Value {value} could not be compared to {returntype.Name} for field {searchField}");
+        }
+
         try
         {
           return Expression.Constant(Convert.ChangeType(value, returntype), mapping.ReturnType);
         }
         catch (InvalidCastException ice)
         {
-          throw new BadFilterValueException($"Value {value} could not be understood as {returntype.Name}", ice);
+          throw new BadFilterValueException($"Value {value} could not be understood as {returntype.Name} for field {searchField}", ice);
         }
       });
 
@@ -131,6 +142,9 @@ namespace Philo.Search
       {
         case Comparator.Eq:
           theOperation = Expression.MakeBinary(ExpressionType.Equal, mapping.Body, getConvertedValue());
+          break;
+        case Comparator.NEq:
+          theOperation = Expression.MakeBinary(ExpressionType.NotEqual, mapping.Body, getConvertedValue());
           break;
         case Comparator.Gt:
           theOperation = Expression.MakeBinary(ExpressionType.GreaterThan, mapping.Body, getConvertedValue());
