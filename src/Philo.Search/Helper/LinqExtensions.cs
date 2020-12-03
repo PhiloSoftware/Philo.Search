@@ -22,10 +22,10 @@ namespace Philo.Search.Helper
     }
 
     public static IOrderedQueryable<TSource> ThenByWithDirection<TSource, TKey>
-      (this IOrderedQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, bool descending)
+      (this IQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, bool descending)
     {
-      return descending ? source.ThenByDescending(keySelector)
-                        : source.ThenBy(keySelector);
+      return descending ? source.OrderByDescending(keySelector)
+                        : source.OrderBy(keySelector);
     }
   }
 }

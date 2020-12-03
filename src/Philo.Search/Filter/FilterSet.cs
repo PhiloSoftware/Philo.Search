@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -12,7 +11,6 @@ namespace Philo.Search.Filter
     public int PageSize { get; set; }
     public string SortBy { get; set; }
     public string SortDir { get; set; }
-    public List<SortOrder> Sort { get; set; }
     public FilterGroup Filter { get; set; }
 
     public void AddRequiredFilterGroup(FilterGroup filterGroup)
@@ -117,11 +115,5 @@ namespace Philo.Search.Filter
     GtEq,
     LtEq,
     NEq
-  }
-
-  public class SortOrder
-  {
-    public string Field { get; set; }
-    public ListSortDirection Direction { get; set; }
   }
 }

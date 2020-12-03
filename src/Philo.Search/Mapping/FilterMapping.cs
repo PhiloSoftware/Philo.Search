@@ -38,10 +38,6 @@ namespace Philo.Search.Mapping
 
     public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, bool descending)
     {
-      if (query is IOrderedQueryable<TEntityType>)
-      {
-        return (query as IOrderedQueryable<TEntityType>).ThenByWithDirection(Mapping, descending);
-      }
       return query.OrderByWithDirection(Mapping, descending);
     }
 

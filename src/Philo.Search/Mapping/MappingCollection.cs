@@ -73,8 +73,6 @@ namespace Philo.Search.Mapping
       defaultSortDescending = isDescending;
       return this;
     }
-
-
   }
 
   internal class DefaultSort<TEntityType>
