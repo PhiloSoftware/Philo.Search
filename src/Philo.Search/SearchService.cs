@@ -2,6 +2,7 @@
 using Philo.Search.Filter;
 using Philo.Search.Mapping;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Philo.Search
@@ -85,6 +86,18 @@ namespace Philo.Search
       MappingCollection<TEntityType> mappings
     ) where TEntityType : class
     {
+      if (filter.Sort != null && filter.Sort.Any())
+      {
+        var retVal = query;
+        foreach (var sort in filter.Sort)
+        {
+          var mapping = mappings.GetMapping(sort.Field);
+          retVal = mapping.ApplySort(retVal, sort.Direction == ListSortDirection.Descending);
+        }
+
+        return retVal;
+      }
+
       var isDescending = filter.SortDir == "desc";
       var isAscending = filter.SortDir == "asc";
 
