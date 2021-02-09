@@ -98,18 +98,18 @@ namespace Philo.Search
         return HandleEnum(mapping, value, comparator);
       }
 
-      object parsedValue = null;
-      if (returntype == typeof(DateTimeOffset) || returntype == typeof(DateTime))
-      {
-        parsedValue = ParseDateTime(mapping, value, comparator);
-      }
-
       // convert the string value to the actual type
       var getConvertedValue = new Func<Expression>(() =>
       {
-        if (parsedValue != null)
+        // if value is nullable and has null value
+        if (nullable != null && value == null)
         {
-          return Expression.Constant(parsedValue, mapping.ReturnType);
+          return Expression.Constant(value, mapping.ReturnType);
+        }
+
+        if (returntype == typeof(DateTimeOffset) || returntype == typeof(DateTime))
+        {
+          return Expression.Constant(ParseDateTime(mapping, value, comparator), mapping.ReturnType);
         }
 
         if (returntype == typeof(Guid))
