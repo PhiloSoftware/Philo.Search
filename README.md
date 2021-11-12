@@ -17,7 +17,7 @@ var filterSet = new FilterSet
   PageNumber = 1,
   PageSize = 10,
   SortBy = "code",
-  SortDir = "desc",
+  SortDir = "Description",
   Filter = new FilterGroup
   {
     Operator = FilterOperator.Or,

@@ -25,7 +25,7 @@ namespace Philo.Search.Mapping
 
     public string Field => collection.GetField();
 
-    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, bool descending)
+    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortOrder)
     {
       // TODO - how do we build the sort expression??
       return query;

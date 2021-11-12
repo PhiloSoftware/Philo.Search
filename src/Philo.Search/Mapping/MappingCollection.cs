@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Philo.Search.Filter;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Philo.Search.Mapping
@@ -8,7 +9,7 @@ namespace Philo.Search.Mapping
   {
     private readonly IEnumerable<IMapAFilter<TEntityType>> mappings;
     private string defaultMapField;
-    private bool defaultSortDescending;
+    private SortOrder sortOrder;
 
     /// <summary>
     /// Create a collection of mapping 
@@ -28,7 +29,7 @@ namespace Philo.Search.Mapping
         {
           return new DefaultSort<TEntityType>(
             mappings.First(m => m.Field == defaultMapField),
-            defaultSortDescending
+            sortOrder
           );
         }
 
@@ -37,12 +38,12 @@ namespace Philo.Search.Mapping
 
         if (defaultSort != null)
         {
-          return new DefaultSort<TEntityType>(defaultSort, defaultSortDescending);
+          return new DefaultSort<TEntityType>(defaultSort, sortOrder);
         }
 
         if (mappings.Count() > 0)
         {
-          return new DefaultSort<TEntityType>(mappings.First(), defaultSortDescending);
+          return new DefaultSort<TEntityType>(mappings.First(), sortOrder);
         }
 
         throw new BadSortFieldException($"No default mapping found");
@@ -62,7 +63,7 @@ namespace Philo.Search.Mapping
       return mapping;
     }
 
-    public MappingCollection<TEntityType> WithDefaultSort(string field, bool isDescending)
+    public MappingCollection<TEntityType> WithDefaultSort(string field, SortOrder sortOrder)
     {
       if (!this.mappings.Any(m => m.Field == field))
       {
@@ -70,7 +71,7 @@ namespace Philo.Search.Mapping
       }
 
       defaultMapField = field;
-      defaultSortDescending = isDescending;
+      this.sortOrder = sortOrder;
       return this;
     }
   }
@@ -78,13 +79,13 @@ namespace Philo.Search.Mapping
   internal class DefaultSort<TEntityType>
     where TEntityType : class
   {
-    public DefaultSort(IMapAFilter<TEntityType> mapping, bool descending)
+    public DefaultSort(IMapAFilter<TEntityType> mapping, SortOrder sortOrder)
     {
       Mapping = mapping;
-      Descending = descending;
+      SortOrder = sortOrder;
     }
 
     public IMapAFilter<TEntityType> Mapping { get; }
-    public bool Descending { get; }
+    public SortOrder SortOrder { get; }
   }
 }

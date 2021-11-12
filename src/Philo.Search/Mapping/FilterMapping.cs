@@ -36,9 +36,9 @@ namespace Philo.Search.Mapping
     public bool IsDefaultSortFilter { get; set; } = false;
     private Expression<Func<TEntityType, TPropType>> Mapping { get; set; }
 
-    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, bool descending)
+    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortOrder)
     {
-      return query.OrderByWithDirection(Mapping, descending);
+      return query.OrderByWithDirection(Mapping, sortOrder);
     }
 
     public Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator)

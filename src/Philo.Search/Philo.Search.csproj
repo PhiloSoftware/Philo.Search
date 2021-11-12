@@ -1,25 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <Description>Automatic generation of linq expressions to filter IQueryable. Saves plumbing data grid queries and filters from the front end to Linq statements, these are generated using mapping files.
 By explicitly mapping the filter query to the data set it offers a layer of abstraction allowing the model to change, and also dynamic construction of columns instead of polluting your domain.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PhiloSoftware/Philo.Search</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhiloSoftware/Philo.Search</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <Version>1.2.6</Version>
-    <AssemblyVersion>1.2.6.0</AssemblyVersion>
+    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIcon>Logo.png</PackageIcon>
+    <PackageIcon>Logo.jpg</PackageIcon>
     <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\Logo.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -28,6 +24,13 @@ By explicitly mapping the filter query to the data set it offers a layer of abst
 
   <ItemGroup>
     <PackageReference Include="LINQKit.Core" Version="1.1.21" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Logo.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

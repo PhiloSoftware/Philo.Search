@@ -85,20 +85,15 @@ namespace Philo.Search
       MappingCollection<TEntityType> mappings
     ) where TEntityType : class
     {
-      var isDescending = filter.SortDir == "desc";
-      var isAscending = filter.SortDir == "asc";
-
-      bool? selectedSort = isDescending ? true : (isAscending ? false : (bool?)null);
-
       if (!string.IsNullOrWhiteSpace(filter.SortBy))
       {
         var mapping = mappings.GetMapping(filter.SortBy);
 
-        return mapping.ApplySort(query, selectedSort ?? mappings.DefaultSort.Descending);
+        return mapping.ApplySort(query, filter.SortDir ?? mappings.DefaultSort.SortOrder);
       }
 
       var defaultSort = mappings.DefaultSort;
-      return defaultSort.Mapping.ApplySort(query, selectedSort ?? mappings.DefaultSort.Descending);
+      return defaultSort.Mapping.ApplySort(query, filter.SortDir ?? mappings.DefaultSort.SortOrder);
     }
   }
 

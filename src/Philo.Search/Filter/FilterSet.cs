@@ -7,11 +7,11 @@ namespace Philo.Search.Filter
 {
   public class FilterSet
   {
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
     public string SortBy { get; set; }
-    public string SortDir { get; set; }
-    public FilterGroup Filter { get; set; }
+    public SortOrder? SortDir { get; set; } = SortOrder.Descending;
+    public FilterGroup Filter { get; set; } = new FilterGroup();
 
     public void AddRequiredFilterGroup(FilterGroup filterGroup)
     {
@@ -89,8 +89,8 @@ namespace Philo.Search.Filter
   {
     public FilterOperator Operator { get; set; }
 
-    public ICollection<Filter> Filters { get; set; }
-    public ICollection<FilterGroup> FilterGroups { get; set; }
+    public ICollection<Filter> Filters { get; set; } = new List<Filter>();
+    public ICollection<FilterGroup> FilterGroups { get; set; } = new List<FilterGroup>();
   }
 
   public class Filter : IFilter
@@ -98,6 +98,12 @@ namespace Philo.Search.Filter
     public string Field { get; set; }
     public string Value { get; set; }
     public Comparator Action { get; set; }
+  }
+
+  public enum SortOrder
+  {
+    Ascending,
+    Descending
   }
 
   public enum FilterOperator

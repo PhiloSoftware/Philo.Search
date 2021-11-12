@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Philo.Search.Filter;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,23 +9,23 @@ namespace Philo.Search.Helper
   internal static class LinqExtensions
   {
     public static IOrderedEnumerable<TSource> OrderByWithDirection<TSource, TKey>
-      (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, bool descending)
+      (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, SortOrder sortOrder)
     {
-      return descending ? source.OrderByDescending(keySelector)
+      return sortOrder == SortOrder.Descending ? source.OrderByDescending(keySelector)
                         : source.OrderBy(keySelector);
     }
 
     public static IOrderedQueryable<TSource> OrderByWithDirection<TSource, TKey>
-      (this IQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, bool descending)
+      (this IQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, SortOrder sortOrder)
     {
-      return descending ? source.OrderByDescending(keySelector)
+      return sortOrder == SortOrder.Descending ? source.OrderByDescending(keySelector)
                         : source.OrderBy(keySelector);
     }
 
     public static IOrderedQueryable<TSource> ThenByWithDirection<TSource, TKey>
-      (this IQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, bool descending)
+      (this IQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, SortOrder sortOrder)
     {
-      return descending ? source.OrderByDescending(keySelector)
+      return sortOrder == SortOrder.Descending ? source.OrderByDescending(keySelector)
                         : source.OrderBy(keySelector);
     }
   }
