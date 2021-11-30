@@ -173,6 +173,7 @@ import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
+import { VuejsDatatableFactory } from "vuejs-datatable";
 import {
   ColumnFilter,
   Filter,
@@ -182,7 +183,11 @@ import {
 } from "@/processor/datastructure";
 import Processor from "@/processor/processor";
 
-@Component
+Vue.use(VuejsDatatableFactory);
+
+@Component({
+  components: {},
+})
 export default class Table extends Vue {
   processor!: Processor;
 
@@ -200,14 +205,45 @@ export default class Table extends Vue {
   })
   bindToQueryString!: boolean;
 
+  @Prop({
+    type: String,
+    required: false,
+    default: "",
+  })
+  sort!: string;
+
+  @Prop({
+    type: String,
+    required: false,
+    default: "desc",
+  })
+  sortDir!: string;
+
+  @Prop({
+    type: Number,
+    required: false,
+    default: 1,
+  })
+  page!: number;
+
+  @Prop({
+    type: Number,
+    required: false,
+    default: 20,
+  })
+  pageSize!: number;
+
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   @Prop({ default: () => {} })
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public fetchRows!: Function;
+  public fetchRows!: (
+    filter: FilterSet,
+    rowsReturned: (rows: any[], total: number) => void
+  ) => void;
 
   dataLoadFailed = false;
   fetchingData = false;
   showFilter = false;
+  pageModel = this.page;
   items: Record<string, any>[] = [];
   rowCount = 0;
   pagingInfo: {
@@ -219,6 +255,13 @@ export default class Table extends Vue {
     currentMaxIdx: 0,
     totalRows: 0,
   };
+
+  get sortModel(): { sort: string; dir: string } {
+    return {
+      sort: this.sort,
+      dir: this.sortDir,
+    };
+  }
 
   get rowClass(): string {
     return "";
@@ -310,12 +353,12 @@ export default class Table extends Vue {
       });
   }
 
-  created(): void {
+  mounted(): void {
     this.processor = new Processor(
       [],
       [],
-      1,
-      1,
+      this.page,
+      this.pageSize,
       {
         field: "",
         label: "",
