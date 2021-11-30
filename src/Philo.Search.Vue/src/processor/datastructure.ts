@@ -4,6 +4,7 @@ export enum ColumnFilterType {
   text,
   date,
   unixdate,
+  number,
 }
 
 export enum FilterOperator {
@@ -50,6 +51,31 @@ export interface Column {
   visible: boolean;
   filter?: ColumnFilter;
   width?: string | number;
+}
+
+export interface DataColumnFilterValue {
+  id: string;
+  field: string;
+  label: string;
+  type: ColumnFilterType;
+  value?: string | Array<string>;
+  action: Comparator;
+  nullable: boolean;
+}
+
+export interface DataColumnFilter {
+  type: ColumnFilterType;
+  action: Comparator;
+  visible: boolean;
+  defaultValues: string | Array<string>;
+}
+
+export interface DataColumn {
+  field: string;
+  label: string;
+  visible: boolean;
+  nullable?: boolean;
+  filter?: DataColumnFilter;
 }
 
 export enum Comparator {

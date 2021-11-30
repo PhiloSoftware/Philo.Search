@@ -3,12 +3,12 @@
     <div :class="colClass">
       <div :class="rowClass">
         <div :class="colClass" class="mb-1">
-          <button variant="outline-primary" @click="showFilter = !showFilter">
+          <button variant="outline-primary" @click="toggleFilterShow">
             Filters
           </button>
         </div>
         <transition name="slide-down">
-          <div v-if="showFilter" :class="colClass" class="order-4 order-md-2">
+          <div v-if="showFilter" :class="colClass">
             <div :class="rowClass" class="tableFilters">
               <div
                 :class="colClass"
@@ -175,7 +175,8 @@ import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
 import { VuejsDatatableFactory } from "vuejs-datatable";
 import {
-  ColumnFilter,
+  DataColumn,
+  DataColumnFilterValue,
   Filter,
   FilterGroup,
   FilterSet,
@@ -185,9 +186,7 @@ import Processor from "@/processor/processor";
 
 Vue.use(VuejsDatatableFactory);
 
-@Component({
-  components: {},
-})
+@Component
 export default class Table extends Vue {
   processor!: Processor;
 
@@ -233,19 +232,24 @@ export default class Table extends Vue {
   })
   pageSize!: number;
 
+  @Prop({
+    type: Array,
+    required: true,
+    default: [],
+  })
+  columns!: Array<DataColumn>;
+
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   @Prop({ default: () => {} })
   public fetchRows!: (
-    filter: FilterSet,
-    rowsReturned: (rows: any[], total: number) => void
-  ) => void;
+    filter: FilterSet
+  ) => Promise<{ rows: Array<any>; totalRowCount: number }>;
 
   dataLoadFailed = false;
   fetchingData = false;
   showFilter = false;
   pageModel = this.page;
   items: Record<string, any>[] = [];
-  rowCount = 0;
   pagingInfo: {
     currentIdx: number;
     currentMaxIdx: number;
@@ -271,16 +275,23 @@ export default class Table extends Vue {
     return "";
   }
 
-  get columnFilters(): Array<ColumnFilter> {
-    return [];
+  get columnFilters(): Array<DataColumnFilterValue> {
+    return this.processor.columnFilters;
   }
 
-  get visibleColumns(): Array<any> {
-    return [];
+  get visibleColumns(): Array<DataColumn> {
+    return asEnumerable(this.processor.columns)
+      .Where((c) => c.visible !== false)
+      .ToArray();
   }
 
   get mockFilterBy(): string {
     return "";
+  }
+
+  toggleFilterShow(): void {
+    this.showFilter = !this.showFilter;
+    console.log(this.showFilter);
   }
 
   public fetchData: () => void = debounce(this.doFetch, 400);
@@ -295,11 +306,19 @@ export default class Table extends Vue {
     }
     this.$emit("filter-change", filter);
 
-    this.fetchRows(filter, (items: Record<string, any>[], rowCount: number) => {
-      this.items = items;
-      this.rowCount = rowCount;
-      this.fetchingData = false;
-    });
+    var rowRes = await this.fetchRows(filter);
+
+    this.pagingInfo.totalRows = rowRes.totalRowCount;
+    this.pagingInfo.currentIdx = Math.max(
+      filter.pageSize * filter.pageNumber - filter.pageSize + 1,
+      1
+    );
+    this.pagingInfo.currentMaxIdx = Math.min(
+      filter.pageSize * filter.pageNumber,
+      rowRes.totalRowCount
+    );
+
+    return rowRes;
   }
 
   public async filterChanged(filter: FilterSet): Promise<boolean> {
@@ -353,9 +372,9 @@ export default class Table extends Vue {
       });
   }
 
-  mounted(): void {
+  created(): void {
     this.processor = new Processor(
-      [],
+      this.columns,
       [],
       this.page,
       this.pageSize,
@@ -366,6 +385,8 @@ export default class Table extends Vue {
       },
       SortDirection.Desc
     );
+
+    this.doFetch();
   }
 }
 </script>
