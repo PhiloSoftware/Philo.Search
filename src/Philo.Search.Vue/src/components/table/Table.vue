@@ -110,20 +110,25 @@
               <slot name="add" v-if="showAdd"></slot>
             </b-modal>
           </div>
-          <font-awesome-icon
-            v-if="dataLoadFailed"
-            icon="exclamation"
-            class="flipX text-success reloadGrid mt-1 text-warning"
-            :class="{ rotating: fetchingData }"
-            @click="reloadChanger++"
-          >
-          </font-awesome-icon>
-          <i
-            v-else
-            class="flipX text-success reloadGrid mt-1 icon-refresh"
-            :class="{ rotating: fetchingData }"
-            @click="reloadChanger++"
-          />
+          <div class="reload">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fas"
+              data-icon="sync-alt"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+              :class="{ rotating: fetchingData }"
+              @click="requestDataLoad"
+            >
+              <path
+                fill="currentColor"
+                d="M370.72 133.28C339.458 104.008 298.888 87.962 255.848 88c-77.458.068-144.328 53.178-162.791 126.85-1.344 5.363-6.122 9.15-11.651 9.15H24.103c-7.498 0-13.194-6.807-11.807-14.176C33.933 94.924 134.813 8 256 8c66.448 0 126.791 26.136 171.315 68.685L463.03 40.97C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.749zM32 296h134.059c21.382 0 32.09 25.851 16.971 40.971l-41.75 41.75c31.262 29.273 71.835 45.319 114.876 45.28 77.418-.07 144.315-53.144 162.787-126.849 1.344-5.363 6.122-9.15 11.651-9.15h57.304c7.498 0 13.194 6.807 11.807 14.176C478.067 417.076 377.187 504 256 504c-66.448 0-126.791-26.136-171.315-68.685L48.97 471.03C33.851 486.149 8 475.441 8 454.059V320c0-13.255 10.745-24 24-24z"
+                class=""
+              ></path>
+            </svg>
+          </div>
         </div>
       </div>
       <div :class="rowClass">
@@ -170,7 +175,7 @@ import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
-import { VueDatatable, VuejsDatatableFactory } from "vuejs-datatable";
+import { VuejsDatatableFactory } from "vuejs-datatable";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -324,6 +329,8 @@ export default class Table extends Vue {
       rowRes.totalRowCount
     );
 
+    this.fetchingData = false;
+
     return rowRes;
   }
 
@@ -400,6 +407,45 @@ export default class Table extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.reload {
+  cursor: pointer;
+  width: 20px;
+  transform: scale(-1, -1);
+  svg.rotating {
+    @keyframes rotating {
+      from {
+        transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+      }
+    }
+    @-webkit-keyframes rotating {
+      from {
+        transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+      }
+    }
+    -webkit-animation: rotating 2s linear infinite;
+    -moz-animation: rotating 2s linear infinite;
+    -ms-animation: rotating 2s linear infinite;
+    -o-animation: rotating 2s linear infinite;
+    animation: rotating 2s linear infinite;
+  }
+}
+
 .slide-down-enter-active {
   -moz-transition-duration: 0.3s;
   -webkit-transition-duration: 0.3s;

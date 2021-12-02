@@ -98,7 +98,8 @@ basic.args = {
       },
     },
   ],
-  fetchRows: (filter) => {
+  fetchRows: async (filter) => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     console.log(filter);
     const rows = [
       {
