@@ -2,7 +2,7 @@
   <div :class="rowClass">
     <div :class="colClass">
       <div :class="rowClass">
-        <div :class="colClass" class="mb-1">
+        <div :class="colClass" class="t-tiny-col">
           <button variant="outline-primary" @click="toggleFilterShow">
             Filters
           </button>
@@ -85,10 +85,7 @@
             </div>
           </div>
         </transition>
-        <div
-          :class="colClass"
-          class="mb-1 text-right order-3 order-md-4 d-flex"
-        >
+        <div :class="colClass" class='t-tiny-col t-text-right'>
           <div v-if="$slots.add" class="add-button">
             <b-button
               variant="outline-success"
@@ -150,15 +147,14 @@
       </div>
       <div :class="rowClass">
         <div :class="colClass">
-          <nav>
-            <datatable-pager
-              v-model="pageModel"
-              type="abbreviated"
-              :per-page="pageSize"
-            ></datatable-pager>
-          </nav>
+          <datatable-pager
+            v-model="pageModel"
+            type="abbreviated"
+            :per-page="pageSize"
+            class="pagination"
+          ></datatable-pager>
         </div>
-        <div :class="colClass" class="text-right">
+        <div :class="colClass" class="pagecount">
           <span class="p-2 text-primary"
             >[{{ pagingInfo.currentIdx }} - {{ pagingInfo.currentMaxIdx }}] of
             {{ pagingInfo.totalRows }}</span
@@ -276,11 +272,11 @@ export default class Table extends Vue {
   }
 
   get rowClass(): string {
-    return "";
+    return "t-row";
   }
 
   get colClass(): string {
-    return "";
+    return "t-col";
   }
 
   get columnFilters(): Array<DataColumnFilterValue> {
@@ -307,7 +303,8 @@ export default class Table extends Vue {
 
   public fetchData: () => void = debounce(this.doFetch, 400);
 
-  private async doFetch() {
+  private async doFetch(args: any) {
+    console.log(args);
     this.fetchingData = true;
     const filter = this.processor.doSearch();
     if (this.bindToQueryString) {
@@ -407,10 +404,34 @@ export default class Table extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.t-row {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  flex-grow: 1;
+  flex-basis: fit-content;
+  .t-col {
+    flex: 0 0 100%;
+    -ms-flex-preferred-size: 0;
+    flex-basis: 0;
+    -webkit-box-flex: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    max-width: 100%;
+  }
+  .t-tiny-col {
+    flex: 0 0 80px;
+  }
+}
+.t-text-right {
+  text-align: right;
+}
 .reload {
   cursor: pointer;
   width: 20px;
   transform: scale(-1, -1);
+  display: inline-block;
+  margin-bottom: 0.4em;
   svg.rotating {
     @keyframes rotating {
       from {
@@ -444,6 +465,48 @@ export default class Table extends Vue {
     -o-animation: rotating 2s linear infinite;
     animation: rotating 2s linear infinite;
   }
+}
+.tableFilters {
+  select,
+  input {
+    width: calc(100% - 20px);
+    margin-right: 10px;
+  }
+}
+.filteredTable {
+  width: 100%;
+  border-spacing: 0;
+
+  ::v-deep thead th {
+    text-align: left !important;
+    border-top: 1px solid #c8ced3;
+    border-bottom: 2px solid #c8ced3;
+    padding: 0.75rem;
+  }
+  ::v-deep tbody td {
+    padding: 0.75rem;
+    border-top: 1px solid #c8ced3;
+  }
+}
+.pagination {
+  ::v-deep ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    li {
+      padding: 10px;
+      width: 1em;
+      height: 1em;
+      text-align: center;
+      border: 1px solid gray;
+      &.active {
+        background-color: gray;
+      }
+    }
+  }
+}
+.pagecount {
+  text-align: right;
 }
 
 .slide-down-enter-active {
