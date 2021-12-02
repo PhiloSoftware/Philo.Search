@@ -15,39 +15,48 @@
                 v-for="filter in columnFilters"
                 v-bind:key="filter.id"
               >
-                <template v-if="filter.type === 'text'">
-                  <input
-                    type="text"
+                <template v-if="filter.options">
+                  <div class="label">{{ filter.label }}</div>
+                  <select
                     v-model="filter.value"
-                    @keyup="requestDataLoad"
-                  />
+                    :name="filter.id"
+                    :multiple="filter.props.multiple"
+                    @change="requestDataLoad"
+                  >
+                    <option
+                      v-for="option in filter.options"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+                  </select>
                 </template>
                 <template v-else-if="filter.type === 'number'">
-                  <b-input-group size="sm" :prepend="filter.label">
-                    <b-form-input
-                      type="number"
-                      :min="filter.min"
-                      :max="filter.max"
-                      :step="filter.step"
-                      v-model="filter.value"
-                      @change="filterChanged"
-                    />
-                    <b-form-select
-                      v-model="filter.action"
-                      :options="comparators"
-                      @change="filterChanged"
-                    >
-                    </b-form-select>
-                  </b-input-group>
+                  <div class="label">{{ filter.label }}</div>
+                  <input
+                    type="number"
+                    v-model="filter.value"
+                    :min="filter.props.min"
+                    :max="filter.props.max"
+                    :step="filter.props.step"
+                    @change="requestDataLoad"
+                  />
                 </template>
                 <template v-else-if="filter.type === 'bool'">
                   <b-input-group size="sm" :prepend="filter.label">
-                    <b-form-select
+                    <select
                       v-model="filter.value"
-                      :options="boolOptions"
-                      @change="filterChanged"
+                      :name="filter.id"
+                      @change="requestDataLoad"
                     >
-                    </b-form-select>
+                      <option
+                        v-if="filter.nullable === true"
+                        :value="null"
+                      ></option>
+                      <option :value="true">Yes</option>
+                      <option :value="false">No</option>
+                    </select>
                   </b-input-group>
                 </template>
                 <template
@@ -55,34 +64,22 @@
                     filter.type === 'date' || filter.type === 'unixdate'
                   "
                 >
-                  <datetime-picker
+                  <div class="label">{{ filter.label }}</div>
+                  <input
+                    type="date"
                     v-model="filter.value"
-                    :label="filter.label"
-                    :timeDefault="
-                      filter.label.startsWith('From ') ? '00:00:00' : '23:59:59'
-                    "
-                    @change="filterChanged"
+                    :min="filter.props.min"
+                    :max="filter.props.max"
+                    @keyup="requestDataLoad"
                   />
                 </template>
-                <template v-else-if="filter.type === 'list'">
-                  <b-input-group size="sm" :prepend="filter.label">
-                    <multiselect
-                      v-model="filter.value"
-                      label="text"
-                      track-by="value"
-                      class="form-control"
-                      :tagging="true"
-                      :options="filter.options"
-                      :multiple="true"
-                      @input="filterChanged"
-                    >
-                    </multiselect>
-                    <!-- <b-form-select v-model="filter.value" :options="filter.options" @change='filterChanged' >
-                      <template slot='first'>
-                        <option :value="null"></option>
-                      </template>
-                    </b-form-select> -->
-                  </b-input-group>
+                <template v-else>
+                  <div class="label">{{ filter.label }}</div>
+                  <input
+                    type="text"
+                    v-model="filter.value"
+                    @keyup="requestDataLoad"
+                  />
                 </template>
               </div>
             </div>
@@ -297,7 +294,6 @@ export default class Table extends Vue {
 
   toggleFilterShow(): void {
     this.showFilter = !this.showFilter;
-    console.log(this.showFilter);
   }
 
   private async requestDataLoad(): Promise<void> {

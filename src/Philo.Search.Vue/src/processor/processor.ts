@@ -80,6 +80,8 @@ export default class Processor {
             value: defaultValues.length > 1 ? defaultValues[0] : "",
             action: Comparator.Gt,
             nullable: c.nullable ?? false,
+            props: c.filter.props ?? {},
+            options: c.filter.options,
           });
           res.push({
             id: `${c.field}_to`,
@@ -89,6 +91,8 @@ export default class Processor {
             value: defaultValues.length > 1 ? defaultValues[1] : "",
             action: Comparator.Lt,
             nullable: c.nullable ?? false,
+            props: c.filter.props ?? {},
+            options: c.filter.options,
           });
         } else if (c.filter.type === ColumnFilterType.number) {
           res.push({
@@ -99,6 +103,8 @@ export default class Processor {
             value: defaultValues[0],
             action: c.filter?.action ?? Comparator.Eq,
             nullable: c.nullable ?? false,
+            props: c.filter.props ?? {},
+            options: c.filter.options,
           });
         } else {
           res.push({
@@ -109,6 +115,8 @@ export default class Processor {
             value: defaultValues[0],
             action: c.filter?.action ?? Comparator.Eq,
             nullable: c.nullable ?? false,
+            props: c.filter.props ?? {},
+            options: c.filter.options,
           });
         }
 

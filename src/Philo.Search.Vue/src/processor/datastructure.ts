@@ -53,6 +53,10 @@ export interface Column {
   width?: string | number;
 }
 
+export interface ColumnFilterProps {
+  [key: string]: string;
+}
+
 export interface DataColumnFilterValue {
   id: string;
   field: string;
@@ -61,6 +65,8 @@ export interface DataColumnFilterValue {
   value?: string | Array<string>;
   action: Comparator;
   nullable: boolean;
+  props: ColumnFilterProps;
+  options?: Array<{ label: string; value: string }>;
 }
 
 export interface DataColumnFilter {
@@ -68,6 +74,8 @@ export interface DataColumnFilter {
   action: Comparator;
   visible: boolean;
   defaultValues: string | Array<string>;
+  props?: ColumnFilterProps;
+  options?: Array<{ label: string; value: string }>;
 }
 
 export interface DataColumn {
