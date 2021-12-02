@@ -16,12 +16,11 @@
                 v-bind:key="filter.id"
               >
                 <template v-if="filter.type === 'text'">
-                  <b-input-group size="sm" :prepend="filter.label">
-                    <b-form-input
-                      v-model="filter.value"
-                      @keyup="filterChanged"
-                    />
-                  </b-input-group>
+                  <input
+                    type="text"
+                    v-model="filter.value"
+                    @keyup="requestDataLoad"
+                  />
                 </template>
                 <template v-else-if="filter.type === 'number'">
                   <b-input-group size="sm" :prepend="filter.label">
@@ -133,6 +132,7 @@
       <div :class="rowClass">
         <div :class="colClass">
           <datatable
+            ref="dataTable"
             :columns="visibleColumns"
             :data="fetchData"
             :filter-by="mockFilterBy"
@@ -173,7 +173,7 @@ import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
-import { VuejsDatatableFactory } from "vuejs-datatable";
+import { VueDatatable, VuejsDatatableFactory } from "vuejs-datatable";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -183,6 +183,7 @@ import {
   SortDirection,
 } from "@/processor/datastructure";
 import Processor from "@/processor/processor";
+import PsVueDataTable from "./PsVueDataTable";
 
 Vue.use(VuejsDatatableFactory);
 
@@ -245,6 +246,11 @@ export default class Table extends Vue {
     filter: FilterSet
   ) => Promise<{ rows: Array<any>; totalRowCount: number }>;
 
+  $refs!: {
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    dataTable: PsVueDataTable<{}>;
+  };
+
   dataLoadFailed = false;
   fetchingData = false;
   showFilter = false;
@@ -292,6 +298,10 @@ export default class Table extends Vue {
   toggleFilterShow(): void {
     this.showFilter = !this.showFilter;
     console.log(this.showFilter);
+  }
+
+  private async requestDataLoad(): Promise<void> {
+    await this.$refs.dataTable.processRows();
   }
 
   public fetchData: () => void = debounce(this.doFetch, 400);
@@ -385,6 +395,8 @@ export default class Table extends Vue {
       },
       SortDirection.Desc
     );
+
+    Vue.set(this, "processor", this.processor);
 
     this.doFetch();
   }
