@@ -123,7 +123,7 @@
                 <tr>
                   <td v-for="col in visibleColumns" :key="col.id">
                     <slot
-                      name="cell"
+                      :name="`cell-${col.field}`"
                       v-bind="{ col, row, value: row[col.field] }"
                     >
                       {{ row[col.field] }}
