@@ -118,8 +118,19 @@
             responsive
             class="filteredTable"
           >
-            <template v-slot="row">
-              <slot name="rowlayout" v-bind="row"></slot>
+            <template v-slot:default="{ row }">
+              <slot name="row" v-bind="row">
+                <tr>
+                  <td v-for="col in visibleColumns" :key="col.id">
+                    <slot
+                      name="cell"
+                      v-bind="{ col, row, value: row[col.field] }"
+                    >
+                      {{ row[col.field] }}
+                    </slot>
+                  </td>
+                </tr>
+              </slot>
             </template>
           </datatable>
         </div>

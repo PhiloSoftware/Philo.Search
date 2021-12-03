@@ -14,7 +14,11 @@ const Template = (args, { argTypes }) => ({
     :page='page'
     :pageSize='pageSize'
     :fetchRows='fetchRows'
-  ></Table>`,
+  >
+    <template v-slot:cell='{ col, row, value }'>
+      {{ value }}
+    </template>
+  </Table>`,
 });
 
 export const basic = Template.bind({});
@@ -110,6 +114,7 @@ basic.args = {
         firstName: "Jane",
         lastName: "Doe",
         age: 22,
+        dob: "2021-12-03",
       },
       {
         firstName: "Mary",
