@@ -1,7 +1,7 @@
-import { Column, ColumnFilterType, Comparator, FilterOperator, RequiredFilter, SortDirection } from '../src/datastructure';
+import { Column, ColumnFilterType, Comparator, DataColumn, FilterOperator, RequiredFilter, SortDirection } from '../src/datastructure';
 import Processor from '../src/processor';
 test('Simple Filter', () => {
-  const cols: Array<Column> = [
+  const cols: Array<DataColumn> = [
     {
       field: "col1",
       label: "Column 1",
@@ -9,7 +9,8 @@ test('Simple Filter', () => {
       filter: {
         action: Comparator.Eq,
         type: ColumnFilterType.text,
-        value: "filter one"
+        visible: true,
+        defaultValues: "filter one"
       }
     }
   ]
@@ -19,7 +20,7 @@ test('Simple Filter', () => {
     [],
     1,
     10,
-    cols[0],
+    "col1",
     SortDirection.Desc
   )
 
@@ -59,7 +60,7 @@ test('Required Filter', () => {
     }
   ]
 
-  const cols: Array<Column> = [
+  const cols: Array<DataColumn> = [
     {
       field: "col1",
       label: "Column 1",
@@ -67,7 +68,8 @@ test('Required Filter', () => {
       filter: {
         action: Comparator.Eq,
         type: ColumnFilterType.text,
-        value: "filter one"
+        visible: true,
+        defaultValues: "filter one"
       }
     }
   ]
@@ -77,7 +79,7 @@ test('Required Filter', () => {
     reqFilters,
     1,
     10,
-    cols[0],
+    "col1",
     SortDirection.Desc
   )
 

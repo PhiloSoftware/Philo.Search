@@ -1,11 +1,12 @@
 {
-  "name": "philo.search.js",
-  "version": "1.0.0",
+  "name": "philo-search-core",
+  "version": "1.0.2",
   "author": "Philo Software",
   "license": "ISC",
   "description": "Search datasets with filters",
   "keywords": [],
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest --config jestconfig.json",

@@ -162,6 +162,7 @@ import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
 import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
+import Processor from "philo-search-core/lib/processor";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -169,8 +170,7 @@ import {
   FilterGroup,
   FilterSet,
   SortDirection,
-} from "@/processor/datastructure";
-import Processor from "@/processor/processor";
+} from "philo-search-core";
 import PsVueDataTable from "./PsVueDataTable";
 
 Vue.use(VuejsDatatableFactory);

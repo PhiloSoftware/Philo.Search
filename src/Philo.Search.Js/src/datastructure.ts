@@ -3,12 +3,13 @@ export enum ColumnFilterType {
   bool,
   text,
   date,
-  unixdate
+  unixdate,
+  number,
 }
 
 export enum FilterOperator {
-  'And' = 'And',
-  'Or' = 'Or',
+  "And" = "And",
+  "Or" = "Or",
 }
 
 export interface Filter {
@@ -31,7 +32,7 @@ export interface FilterSet {
   filter: FilterGroup;
 }
 
-export type ColumnFilterValue =  string | undefined | Array<string>;
+export type ColumnFilterValue = string | undefined | Array<string>;
 
 export interface ColumnFilter {
   type: ColumnFilterType;
@@ -52,18 +53,51 @@ export interface Column {
   width?: string | number;
 }
 
+export interface ColumnFilterProps {
+  [key: string]: string;
+}
+
+export interface DataColumnFilterValue {
+  id: string;
+  field: string;
+  label: string;
+  type: ColumnFilterType;
+  value?: string | Array<string>;
+  action: Comparator;
+  nullable: boolean;
+  props: ColumnFilterProps;
+  options?: Array<{ label: string; value: string }>;
+}
+
+export interface DataColumnFilter {
+  type: ColumnFilterType;
+  action: Comparator;
+  visible: boolean;
+  defaultValues: string | Array<string>;
+  props?: ColumnFilterProps;
+  options?: Array<{ label: string; value: string }>;
+}
+
+export interface DataColumn {
+  field: string;
+  label: string;
+  visible: boolean;
+  nullable?: boolean;
+  filter?: DataColumnFilter;
+}
+
 export enum Comparator {
-  'Eq' = 'Eq',
-  'Gt' = 'Gt',
-  'Lt' = 'Lt',
-  'Like' = 'Like',
-  'GtEq' = 'GtEq',
-  'LtEq' = 'LtEq',
-  'NEq' = 'NEq',
-  'In' = 'In'
+  "Eq" = "Eq",
+  "Gt" = "Gt",
+  "Lt" = "Lt",
+  "Like" = "Like",
+  "GtEq" = "GtEq",
+  "LtEq" = "LtEq",
+  "NEq" = "NEq",
+  "In" = "In",
 }
 
 export enum SortDirection {
-  'Asc' = 'Asc',
-  'Desc' = 'Desc'
+  "Asc" = "Asc",
+  "Desc" = "Desc",
 }
