@@ -1,5 +1,4 @@
 import Table from "./Table.vue";
-import { FilterSet } from "@/processor/datastructure";
 
 export default {
   component: Table,
@@ -22,7 +21,7 @@ export const basic = Template.bind({});
 basic.args = {
   tableId: "yolo",
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
   columns: [
     {
       field: "firstName",
@@ -120,7 +119,7 @@ basic.args = {
     ];
     return {
       rows: rows,
-      totalRowCount: rows.length,
+      totalRowCount: 20,
     };
   },
 };

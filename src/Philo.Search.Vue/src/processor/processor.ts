@@ -1,7 +1,6 @@
 import { asEnumerable } from "linq-es2015";
 import moment from "moment";
 import {
-  Column,
   ColumnFilterType,
   ColumnFilterValue,
   Comparator,
@@ -20,7 +19,7 @@ export default class Processor {
   requiredFilters!: RequiredFilter[];
   page!: number;
   pageSize!: number;
-  sortBy!: Column;
+  sortBy?: string;
   sortDir!: SortDirection;
   columnFilters: DataColumnFilterValue[] = [];
 
@@ -29,7 +28,7 @@ export default class Processor {
     requiredFilters: Array<RequiredFilter>,
     page: number,
     pageSize: number,
-    sortBy: Column,
+    sortBy: string,
     sortDir: SortDirection
   ) {
     this.columns = columns;
@@ -40,6 +39,16 @@ export default class Processor {
     this.sortDir = sortDir;
 
     this.buildColumnFilters();
+  }
+
+  public setSort(sortBy: string, sortDir: SortDirection): void {
+    this.sortBy = sortBy;
+    this.sortDir = sortDir;
+  }
+
+  public setPagination(page: number, pageSize: number): void {
+    this.page = page;
+    this.pageSize = pageSize;
   }
 
   public doTextSearch(query: string): FilterSet {
@@ -147,7 +156,7 @@ export default class Processor {
     return {
       pageNumber: this.page,
       pageSize: this.pageSize,
-      sortBy: this.sortBy.field,
+      sortBy: this.sortBy,
       sortDir: this.sortDir,
       filter: {
         operator: FilterOperator.And,

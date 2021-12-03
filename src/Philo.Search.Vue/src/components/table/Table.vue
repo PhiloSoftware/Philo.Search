@@ -85,28 +85,7 @@
             </div>
           </div>
         </transition>
-        <div :class="colClass" class='t-tiny-col t-text-right'>
-          <div v-if="$slots.add" class="add-button">
-            <b-button
-              variant="outline-success"
-              v-b-modal="'modal_add' + tableId"
-              ><i class="fa fa-upload" /> Add</b-button
-            >
-            <b-modal
-              :id="'modal_add' + tableId"
-              :title="addModalTitle"
-              :size="addModalSize"
-              @show="
-                showAdd = true;
-                $emit('addShown');
-              "
-              @ok="$emit('addSaved')"
-              @hide="$emit('addHidden')"
-              class="text-left"
-            >
-              <slot name="add" v-if="showAdd"></slot>
-            </b-modal>
-          </div>
+        <div :class="colClass" class="t-tiny-col t-ml-auto t-text-right">
           <div class="reload">
             <svg
               aria-hidden="true"
@@ -132,10 +111,10 @@
         <div :class="colClass">
           <datatable
             ref="dataTable"
+            :name="tableId"
             :columns="visibleColumns"
             :data="fetchData"
-            :filter-by="mockFilterBy"
-            :sortBy="sortModel"
+            :perPage="pageSize"
             responsive
             class="filteredTable"
           >
@@ -149,8 +128,8 @@
         <div :class="colClass">
           <datatable-pager
             v-model="pageModel"
+            :table="tableId"
             type="abbreviated"
-            :per-page="pageSize"
             class="pagination"
           ></datatable-pager>
         </div>
@@ -171,7 +150,7 @@ import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
-import { VuejsDatatableFactory } from "vuejs-datatable";
+import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -264,13 +243,6 @@ export default class Table extends Vue {
     totalRows: 0,
   };
 
-  get sortModel(): { sort: string; dir: string } {
-    return {
-      sort: this.sort,
-      dir: this.sortDir,
-    };
-  }
-
   get rowClass(): string {
     return "t-row";
   }
@@ -289,10 +261,6 @@ export default class Table extends Vue {
       .ToArray();
   }
 
-  get mockFilterBy(): string {
-    return "";
-  }
-
   toggleFilterShow(): void {
     this.showFilter = !this.showFilter;
   }
@@ -301,11 +269,29 @@ export default class Table extends Vue {
     await this.$refs.dataTable.processRows();
   }
 
-  public fetchData: () => void = debounce(this.doFetch, 400);
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public fetchData: (args: IDataFnParams<{}>) => void = debounce(
+    this.doFetch,
+    400
+  );
 
-  private async doFetch(args: any) {
-    console.log(args);
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  private async doFetch(args: IDataFnParams<{}>) {
     this.fetchingData = true;
+
+    console.log(args);
+    if (args && args.sortBy !== null) {
+      this.processor.setSort(
+        args.sortBy,
+        // webpack dies when importing ESortDir :/
+        args.sortDir.toString() === "Asc"
+          ? SortDirection.Asc
+          : SortDirection.Desc
+      );
+    }
+
+    this.processor.setPagination(args.page, args.perPage);
+
     const filter = this.processor.doSearch();
     if (this.bindToQueryString) {
       if (await this.filterChanged(filter)) {
@@ -388,17 +374,13 @@ export default class Table extends Vue {
       [],
       this.page,
       this.pageSize,
-      {
-        field: "",
-        label: "",
-        visible: true,
-      },
+      "",
       SortDirection.Desc
     );
 
     Vue.set(this, "processor", this.processor);
 
-    this.doFetch();
+    // this.doFetch();
   }
 }
 </script>
@@ -425,6 +407,9 @@ export default class Table extends Vue {
 }
 .t-text-right {
   text-align: right;
+}
+.t-ml-auto {
+  margin-left: auto;
 }
 .reload {
   cursor: pointer;
