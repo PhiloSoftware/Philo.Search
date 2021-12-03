@@ -267,4 +267,4 @@ __pycache__/
 **/docker_storage/
 
 **/dist/
-**/lib/
+**/lib/*
