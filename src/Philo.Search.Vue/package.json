@@ -5,15 +5,22 @@
   "license": "ISC",
   "description": "Search datasets with filters",
   "keywords": [],
-  "main": "./dist/index.js",
-  "types": "./lib/index.d.ts",
+  "types": "./dist/types/index.d.ts",
+  "style": "./dist/styles.css",
+  "main": "dist/table.umd.js",
+  "module": "dist/table.esm.js",
+  "unpkg": "dist/table.min.js",
+  "browser": {
+    "./sfc": "src/table.vue"
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build:vue": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "storybook:build": "vue-cli-service storybook:build -c config/storybook",
-    "storybook:serve": "vue-cli-service storybook:serve -p 6006 -c config/storybook"
+    "storybook:serve": "vue-cli-service storybook:serve -p 6006 -c config/storybook",
+    "build": "NODE_ENV=production rollup --config ./build/rollup.config.js"
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -29,6 +36,8 @@
     "vuejs-datatable": "^2.0.0-alpha.7"
   },
   "devDependencies": {
+    "@rollup/plugin-buble": "^0.21.3",
+    "@rollup/plugin-commonjs": "^21.0.1",
     "@storybook/addon-essentials": "^6.0.26",
     "@storybook/addon-links": "^6.0.26",
     "@storybook/vue": "^6.0.26",
@@ -47,11 +56,17 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^6.2.2",
+    "postcss": "^8.2.4",
     "prettier": "^2.2.1",
+    "rollup": "^2.60.2",
+    "rollup-plugin-typescript2": "^0.31.1",
+    "rollup-plugin-vue": "^6.0.0",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "typescript": "~4.1.5",
     "vue-cli-plugin-storybook": "~2.1.0",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.11",
+    "rollup-plugin-css-only": "^2.0.0",
+    "@rollup/plugin-babel": "^5.0.2"
   }
 }
