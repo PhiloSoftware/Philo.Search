@@ -1,0 +1,3 @@
+config/*
+storybook-static/*
+src/stories/*

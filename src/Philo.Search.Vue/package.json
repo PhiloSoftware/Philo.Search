@@ -1,6 +1,6 @@
 {
   "name": "philo-search-vue",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "author": "Philo Software",
   "license": "ISC",
   "description": "Search datasets with filters",
@@ -20,13 +20,12 @@
     "lint": "vue-cli-service lint",
     "storybook:build": "vue-cli-service storybook:build -c config/storybook",
     "storybook:serve": "vue-cli-service storybook:serve -p 6006 -c config/storybook",
-    "build": "NODE_ENV=production rollup --config ./build/rollup.config.js"
+    "build": "rollup --config ./build/rollup.config.js"
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "deep-equal": "^2.0.5",
     "linq-es2015": "^2.5.1",
-    "moment": "^2.29.1",
     "philo-search-core": "^1.0.2",
     "ts-debounce": "^4.0.0",
     "vue": "^2.6.11",
