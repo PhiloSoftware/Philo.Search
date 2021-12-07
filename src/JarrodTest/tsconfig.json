@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "declarationDir": "lib",
+    "moduleResolution": "node",
+    "target": "esnext",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "importHelpers": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports":true
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue"]
+}
