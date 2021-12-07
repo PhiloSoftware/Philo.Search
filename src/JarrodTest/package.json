@@ -1,7 +1,9 @@
 {
-  "name": "jarrodtest",
-  "version": "1.0.0",
-  "description": "",
+  "name": "philo-search-vue",
+  "version": "1.0.4",
+  "description": "Search datasets with filters",
+  "types": "./lib/index.d.ts",
+  "style": "./lib/index.css",
   "main": "lib/index.js",
   "module": "lib/index.esm.js",
   "scripts": {
