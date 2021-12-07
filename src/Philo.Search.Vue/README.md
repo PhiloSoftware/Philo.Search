@@ -1,29 +1,5 @@
 # philo.search.vue
+Vue Component to present and build query filters on top of https://www.nuget.org/packages/Philo.Search/  
+Provide the row data schema and this component will generate filter fields automatically. 
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Offers complex table data queries, searching, and sorting without the need to wire everything up each time.
