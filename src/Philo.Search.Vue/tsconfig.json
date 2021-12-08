@@ -2,7 +2,8 @@
   "compilerOptions": {
     "declarationDir": "lib",
     "moduleResolution": "node",
-    "target": "esnext",
+    "target": "ES6",
+    "lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ES2016.Array.Include"],
     "module": "esnext",
     "esModuleInterop": true,
     "sourceMap": true,
