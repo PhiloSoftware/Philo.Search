@@ -158,7 +158,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { debounce } from "ts-debounce";
-// import DeepEqual from "deep-equal";
+import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
 import { Dictionary } from "vue-router/types/router";
 import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
@@ -362,23 +362,22 @@ export default class Table extends Vue {
     wrkFilters.forEach((filter: { name: string; value: any }) => {
       query[filter.name] = filter.value;
     });
-    // Todo: Fix for passing in router
-    return false;
-    // var retValue = !DeepEqual(this.$route.query, query);
-    // if (!retValue) {
-    //   return retValue;
-    // }
-    // return this.$router
-    //   .push({
-    //     query: query,
-    //   })
-    //   .then(() => false)
-    //   .catch((err) => {
-    //     if (err.name != "NavigationDuplicated") {
-    //       throw err;
-    //     }
-    //     return true;
-    //   });
+
+    var retValue = !DeepEqual(this.$route.query, query);
+    if (!retValue) {
+      return retValue;
+    }
+    return this.$router
+      .push({
+        query: query,
+      })
+      .then(() => false)
+      .catch((err) => {
+        if (err.name != "NavigationDuplicated") {
+          throw err;
+        }
+        return true;
+      });
   }
 
   created(): void {
