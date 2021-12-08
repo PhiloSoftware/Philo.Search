@@ -105,7 +105,7 @@ export default class Processor {
           });
         } else if (c.filter.type === ColumnFilterType.number) {
           res.push({
-            id: "",
+            id: `${c.field}`,
             field: c.field,
             label: c.label,
             type: c.filter?.type ?? ColumnFilterType.text,
@@ -117,7 +117,7 @@ export default class Processor {
           });
         } else {
           res.push({
-            id: "",
+            id: `${c.field}`,
             field: c.field,
             label: c.label,
             type: c.filter?.type ?? ColumnFilterType.text,

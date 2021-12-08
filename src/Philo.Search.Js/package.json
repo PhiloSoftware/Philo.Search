@@ -1,6 +1,6 @@
 {
   "name": "philo-search-core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Philo Software",
   "license": "ISC",
   "description": "Search datasets with filters",
