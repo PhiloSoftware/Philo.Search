@@ -491,7 +491,7 @@ export default class Table extends Vue {
 
       this.columnFilters.forEach(cf => {
         const queryActionParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
-        const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
+        const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_v`]
         
         if (queryActionParam === undefined || queryValueParam === undefined) {
           cf.action = Comparator.Eq;
