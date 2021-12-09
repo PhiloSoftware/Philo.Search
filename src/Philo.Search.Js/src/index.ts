@@ -5,6 +5,7 @@ import {
   FilterGroup,
   FilterSet,
   SortDirection,
+  ColumnFilterType
 } from "./datastructure";
 
 import Processor from "./processor"
@@ -16,5 +17,6 @@ export {
   FilterGroup,
   FilterSet,
   SortDirection,
-  Processor
+  Processor,
+  ColumnFilterType
 }

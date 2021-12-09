@@ -37,7 +37,7 @@
                     </select>
                   </slot>
                 </template>
-                <template v-else-if="filter.type === 'number'">
+                <template v-else-if="filter.type === ColumnFilterType.number">
                   <slot
                     name="field-number" 
                     v-bind="{ filter, change: requestDataLoad }"
@@ -53,7 +53,7 @@
                     />
                   </slot>
                 </template>
-                <template v-else-if="filter.type === 'bool'">
+                <template v-else-if="filter.type === ColumnFilterType.bool">
                   <slot
                     name="field-bool" 
                     v-bind="{ filter, change: requestDataLoad }"
@@ -92,7 +92,7 @@
                     />
                   </slot>
                 </template>
-                <template v-else-if="filter.type === 'text'">
+                <template v-else-if="filter.type === ColumnFilterType.text">
                   <slot
                     name="field-text" 
                     v-bind="{ filter, change: requestDataLoad }"
@@ -105,7 +105,7 @@
                     />
                   </slot>
                 </template>
-                <template v-else-if="filter.type === 'guid'">
+                <template v-else-if="filter.type === ColumnFilterType.guid">
                   <slot
                     name="field-guid" 
                     v-bind="{ filter, change: requestDataLoad }"
@@ -220,6 +220,7 @@ import {
   FilterGroup,
   FilterSet,
   SortDirection,
+  ColumnFilterType
 } from "philo-search-core";
 import PsVueDataTable from "./PsVueDataTable";
 import { Comparator } from "philo-search-core/lib/datastructure";
@@ -296,6 +297,8 @@ export default class Table extends Vue {
     // eslint-disable-next-line @typescript-eslint/ban-types
     dataTable: PsVueDataTable<{}>;
   };
+
+  ColumnFilterType = ColumnFilterType;
 
   dataLoadFailed = false;
   fetchingData = false;

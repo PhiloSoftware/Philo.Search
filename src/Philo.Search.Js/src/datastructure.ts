@@ -1,10 +1,10 @@
 export enum ColumnFilterType {
-  guid,
-  bool,
-  text,
-  date,
-  unixdate,
-  number,
+  guid = "guid",
+  bool = "bool",
+  text = "text",
+  date = "date",
+  unixdate = "unixdate",
+  number = "number",
 }
 
 export enum FilterOperator {

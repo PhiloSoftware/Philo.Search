@@ -20,6 +20,9 @@ const Template = (args, { argTypes }) => ({
     <template v-slot:cell='{ col, row, value }'>
       {{ value }}
     </template>
+    <template v-slot:field-text='{ filter, change }'>
+      <button @click='change'>Reload</button>
+    </template>
   </Table>`,
 });
 
