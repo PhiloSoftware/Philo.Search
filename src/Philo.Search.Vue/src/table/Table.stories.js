@@ -1,5 +1,6 @@
 import Table from "./Table.vue";
 
+
 export default {
   component: Table,
   title: "Components/Table",
@@ -14,6 +15,7 @@ const Template = (args, { argTypes }) => ({
     :page='page'
     :pageSize='pageSize'
     :fetchRows='fetchRows'
+    :bindToQueryString='bindToQueryString'
   >
     <template v-slot:cell='{ col, row, value }'>
       {{ value }}
@@ -26,6 +28,7 @@ basic.args = {
   tableId: "yolo",
   page: 1,
   pageSize: 10,
+  bindToQueryString: false,
   columns: [
     {
       field: "firstName",

@@ -16,35 +16,49 @@
                 v-bind:key="filter.id"
               >
                 <template v-if="filter.options">
-                  <div class="label">{{ filter.label }}</div>
-                  <select
-                    v-model="filter.value"
-                    :name="filter.id"
-                    :multiple="filter.props.multiple"
-                    @change="requestDataLoad"
+                  <slot
+                    name="field-select" 
+                    v-bind="{ filter, change: requestDataLoad }"
                   >
-                    <option
-                      v-for="option in filter.options"
-                      :key="option.value"
-                      :value="option.value"
+                    <div class="label">{{ filter.label }}</div>
+                    <select
+                      v-model="filter.value"
+                      :name="filter.id"
+                      :multiple="filter.props.multiple"
+                      @change="requestDataLoad"
                     >
-                      {{ option.label }}
-                    </option>
-                  </select>
+                      <option
+                        v-for="option in filter.options"
+                        :key="option.value"
+                        :value="option.value"
+                      >
+                        {{ option.label }}
+                      </option>
+                    </select>
+                  </slot>
                 </template>
                 <template v-else-if="filter.type === 'number'">
-                  <div class="label">{{ filter.label }}</div>
-                  <input
-                    type="number"
-                    v-model="filter.value"
-                    :min="filter.props.min"
-                    :max="filter.props.max"
-                    :step="filter.props.step"
-                    @change="requestDataLoad"
-                  />
+                  <slot
+                    name="field-number" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
+                    <input
+                      type="number"
+                      v-model="filter.value"
+                      :min="filter.props.min"
+                      :max="filter.props.max"
+                      :step="filter.props.step"
+                      @change="requestDataLoad"
+                    />
+                  </slot>
                 </template>
                 <template v-else-if="filter.type === 'bool'">
-                  <b-input-group size="sm" :prepend="filter.label">
+                  <slot
+                    name="field-bool" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
                     <select
                       v-model="filter.value"
                       :name="filter.id"
@@ -57,29 +71,65 @@
                       <option :value="true">Yes</option>
                       <option :value="false">No</option>
                     </select>
-                  </b-input-group>
+                  </slot>
                 </template>
                 <template
                   v-else-if="
                     filter.type === 'date' || filter.type === 'unixdate'
                   "
                 >
-                  <div class="label">{{ filter.label }}</div>
-                  <input
-                    type="date"
-                    v-model="filter.value"
-                    :min="filter.props.min"
-                    :max="filter.props.max"
-                    @keyup="requestDataLoad"
-                  />
+                  <slot
+                    name="field-date" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
+                    <input
+                      type="date"
+                      v-model="filter.value"
+                      :min="filter.props.min"
+                      :max="filter.props.max"
+                      @keyup="requestDataLoad"
+                    />
+                  </slot>
+                </template>
+                <template v-else-if="filter.type === 'text'">
+                  <slot
+                    name="field-text" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
+                    <input
+                      type="text"
+                      v-model="filter.value"
+                      @keyup="requestDataLoad"
+                    />
+                  </slot>
+                </template>
+                <template v-else-if="filter.type === 'guid'">
+                  <slot
+                    name="field-guid" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
+                    <input
+                      type="text"
+                      v-model="filter.value"
+                      @keyup="requestDataLoad"
+                    />
+                  </slot>
                 </template>
                 <template v-else>
-                  <div class="label">{{ filter.label }}</div>
-                  <input
-                    type="text"
-                    v-model="filter.value"
-                    @keyup="requestDataLoad"
-                  />
+                  <slot
+                    name="field-default" 
+                    v-bind="{ filter, change: requestDataLoad }"
+                  >
+                    <div class="label">{{ filter.label }}</div>
+                    <input
+                      type="text"
+                      v-model="filter.value"
+                      @keyup="requestDataLoad"
+                    />
+                  </slot>
                 </template>
               </div>
             </div>
@@ -156,7 +206,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { asEnumerable } from "linq-es2015";
@@ -172,6 +222,7 @@ import {
   SortDirection,
 } from "philo-search-core";
 import PsVueDataTable from "./PsVueDataTable";
+import { Comparator } from "philo-search-core/lib/datastructure";
 
 Vue.use(VuejsDatatableFactory);
 
@@ -182,9 +233,16 @@ export default class Table extends Vue {
   @Prop({
     type: String,
     required: false,
-    default: "pstable",
+    default: "",
   })
   tableId!: string;
+
+  @Prop({
+    type: String,
+    required: false,
+    default: "",
+  })
+  theme!: string;
 
   @Prop({
     type: Boolean,
@@ -254,11 +312,34 @@ export default class Table extends Vue {
     totalRows: 0,
   };
 
+  themes = {
+    bootstrap: {
+      row: "row",
+      col: "col",
+    },
+    vuetify: {
+      row: "row",
+      col: "col",
+    }
+  }
+
   get rowClass(): string {
+    switch (this.theme) {
+      case "bootstrap" :
+        return this.themes.bootstrap.row;
+      case "vuetify" :
+        return this.themes.vuetify.row;
+    }
     return "t-row";
   }
 
   get colClass(): string {
+    switch (this.theme) {
+      case "bootstrap" :
+        return this.themes.bootstrap.col;
+      case "vuetify" :
+        return this.themes.vuetify.col;
+    }
     return "t-col";
   }
 
@@ -290,7 +371,6 @@ export default class Table extends Vue {
   private async doFetch(args: IDataFnParams<{}>) {
     this.fetchingData = true;
 
-    console.log(args);
     if (args && args.sortBy !== null) {
       this.processor.setSort(
         args.sortBy,
@@ -339,6 +419,8 @@ export default class Table extends Vue {
       query.sort_dir = filter.sortDir;
     }
 
+    var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
+
     const wrkFilters = asEnumerable(filter.filter.filterGroups)
       .SelectMany((fg: FilterGroup) => fg.filters)
       .Where((f: Filter) => {
@@ -347,11 +429,11 @@ export default class Table extends Vue {
       .Select((f: Filter) => {
         return [
           {
-            name: `${f.field.toLowerCase()}_a`,
+            name: `${queryPrefix}${f.field.toLowerCase()}_a`,
             value: f.action,
           },
           {
-            name: `${f.field.toLowerCase()}_v`,
+            name: `${queryPrefix}${f.field.toLowerCase()}_v`,
             value: f.value,
           },
         ];
@@ -363,21 +445,26 @@ export default class Table extends Vue {
       query[filter.name] = filter.value;
     });
 
-    var retValue = !DeepEqual(this.$route.query, query);
-    if (!retValue) {
-      return retValue;
+    if (this.$route) {
+      var retValue = !DeepEqual(this.$route.query, query);
+      if (!retValue) {
+        return retValue;
+      }
+
+      return this.$router
+        .push({
+          query: query,
+        })
+        .then(() => false)
+        .catch((err) => {
+          if (err.name != "NavigationDuplicated") {
+            throw err;
+          }
+          return true;
+        });
     }
-    return this.$router
-      .push({
-        query: query,
-      })
-      .then(() => false)
-      .catch((err) => {
-        if (err.name != "NavigationDuplicated") {
-          throw err;
-        }
-        return true;
-      });
+
+    return false;
   }
 
   created(): void {
@@ -391,8 +478,38 @@ export default class Table extends Vue {
     );
 
     Vue.set(this, "processor", this.processor);
+  }
 
-    // this.doFetch();
+  @Watch("$route.query")
+  querychanged() {
+    if (this.bindToQueryString) {
+      let hasChanged = false;
+      var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
+
+      this.columnFilters.forEach(cf => {
+        const queryActionParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
+        const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
+        
+        if (queryActionParam === undefined || queryValueParam === undefined) {
+          cf.action = Comparator.Eq;
+          cf.value = undefined;
+          return;
+        }
+
+        if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
+          cf.action = Comparator[queryActionParam as keyof typeof Comparator];
+          hasChanged = true;
+        }
+        if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
+          hasChanged = true;
+          cf.value = queryValueParam
+        }
+      })
+      
+      if (hasChanged) {
+        this.requestDataLoad();
+      }
+    }
   }
 }
 </script>
