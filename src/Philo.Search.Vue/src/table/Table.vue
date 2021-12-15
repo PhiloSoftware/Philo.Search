@@ -3,7 +3,7 @@
     <div :class="colClass">
       <div :class="rowClass">
         <div :class="colClass" class="t-tiny-col">
-          <button class='show-filters' variant="outline-primary" @click="toggleFilterShow">
+          <button class='show-filters' variant="outline-primary" type="button" @click="toggleFilterShow">
             Filters
           </button>
         </div>

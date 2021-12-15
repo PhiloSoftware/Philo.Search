@@ -90,35 +90,34 @@ basic.args = {
         },
       },
     },
-    // {
-    //   field: "favAnimal",
-    //   label: "Favourite Animal",
-    //   visible: true,
-    //   filter: {
-    //     type: "text",
-    //     defaultValues: [],
-    //     action: "Eq",
-    //     props: {
-    //       multiple: true,
-    //     },
-    //     options: [
-    //       {
-    //         value: "bee",
-    //         label: "Bee",
-    //       },
-    //       {
-    //         value: "cow",
-    //         label: "Cow",
-    //       },
-    //       {
-    //         value: "Dog",
-    //         label: "Dog",
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      field: "favAnimal",
+      label: "Favourite Animal",
+      visible: true,
+      filter: {
+        type: "text",
+        defaultValues: [],
+        action: "Eq",
+        props: {
+          multiple: true,
+        },
+        options: [
+          {
+            value: "bee",
+            label: "Bee",
+          },
+          {
+            value: "cow",
+            label: "Cow",
+          },
+          {
+            value: "Dog",
+            label: "Dog",
+          },
+        ],
+      },
+    },
   ],
-  onChange: () => {console.log("change")},
   fetchRows: async (filter) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     console.log(filter);
