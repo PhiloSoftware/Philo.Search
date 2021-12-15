@@ -16,12 +16,18 @@ const Template = (args, { argTypes }) => ({
     :pageSize='pageSize'
     :fetchRows='fetchRows'
     :bindToQueryString='bindToQueryString'
+    :rowClickable="rowClickable"
   >
     <template v-slot:cell='{ col, row, value }'>
       {{ value }}
     </template>
     <template v-slot:field-text='{ filter, change }'>
-      <button @click='change'>Reload</button>
+      <div>
+        {{filter.label}}
+      </div>  
+      <div>
+        <input v-model="filter.value" @keyup="change" />
+      </div>
     </template>
   </Table>`,
 });
@@ -32,6 +38,7 @@ basic.args = {
   page: 1,
   pageSize: 10,
   bindToQueryString: false,
+  rowClickable: true,
   columns: [
     {
       field: "firstName",
@@ -39,8 +46,9 @@ basic.args = {
       visible: true,
       filter: {
         type: "text",
-        value: "yo",
         action: "Like",
+        visible: true,
+        defaultValues: '',
       },
     },
     {
@@ -49,8 +57,9 @@ basic.args = {
       visible: true,
       filter: {
         type: "text",
-        value: "yo",
         action: "Like",
+        visible: true,
+        defaultValues: '',
       },
     },
     {
@@ -59,8 +68,9 @@ basic.args = {
       visible: true,
       filter: {
         type: "number",
-        value: "3",
+        defaultValues: '',
         action: "Like",
+        visible: true,
         props: {
           step: 5,
         },
@@ -73,40 +83,42 @@ basic.args = {
       filter: {
         type: "date",
         action: "Eq",
+        defaultValues: '',
         props: {
           min: "1900-01-01",
           max: "2021-12-03",
         },
       },
     },
-    {
-      field: "favAnimal",
-      label: "Favourite Animal",
-      visible: true,
-      filter: {
-        type: "text",
-        value: "3",
-        action: "Eq",
-        props: {
-          multiple: true,
-        },
-        options: [
-          {
-            value: "bee",
-            label: "Bee",
-          },
-          {
-            value: "cow",
-            label: "Cow",
-          },
-          {
-            value: "Dog",
-            label: "Dog",
-          },
-        ],
-      },
-    },
+    // {
+    //   field: "favAnimal",
+    //   label: "Favourite Animal",
+    //   visible: true,
+    //   filter: {
+    //     type: "text",
+    //     defaultValues: [],
+    //     action: "Eq",
+    //     props: {
+    //       multiple: true,
+    //     },
+    //     options: [
+    //       {
+    //         value: "bee",
+    //         label: "Bee",
+    //       },
+    //       {
+    //         value: "cow",
+    //         label: "Cow",
+    //       },
+    //       {
+    //         value: "Dog",
+    //         label: "Dog",
+    //       },
+    //     ],
+    //   },
+    // },
   ],
+  onChange: () => {console.log("change")},
   fetchRows: async (filter) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     console.log(filter);

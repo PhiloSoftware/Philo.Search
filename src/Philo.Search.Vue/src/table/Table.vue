@@ -170,7 +170,7 @@
           >
             <template v-slot:default="{ row }">
               <slot name="row" v-bind="row">
-                <tr>
+                <tr @click="rowClickable ? $emit('rowclick', row) : null" :class="rowClickable ? 'hover' : ''">
                   <td v-for="col in visibleColumns" :key="col.id">
                     <slot
                       :name="`cell-${col.field}`"
@@ -244,6 +244,13 @@ export default class Table extends Vue {
     default: "",
   })
   theme!: string;
+
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false,
+  })
+  rowClickable!: boolean;
 
   @Prop({
     type: Boolean,
@@ -623,6 +630,12 @@ export default class Table extends Vue {
 }
 .pagecount {
   text-align: right;
+}
+
+.hover {
+  &:hover {
+    background-color: #cccccc;
+  }
 }
 
 .slide-down-enter-active {
