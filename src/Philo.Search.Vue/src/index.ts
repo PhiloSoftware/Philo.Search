@@ -6,7 +6,8 @@ import {
   FilterGroup,
   FilterSet,
   SortDirection,
-  ColumnFilterType
+  ColumnFilterType,
+  Comparator
 } from "philo-search-core";
 
 export {
@@ -17,5 +18,6 @@ export {
   FilterSet,
   SortDirection,
   ColumnFilterType,
-  Table
+  Table,
+  Comparator
 }

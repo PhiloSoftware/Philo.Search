@@ -3,7 +3,7 @@
     <div :class="colClass">
       <div :class="rowClass">
         <div :class="colClass" class="t-tiny-col">
-          <button variant="outline-primary" @click="toggleFilterShow">
+          <button class='show-filters' variant="outline-primary" @click="toggleFilterShow">
             Filters
           </button>
         </div>
@@ -424,19 +424,18 @@ export default class Table extends Vue {
 
     var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
 
-    const wrkFilters = asEnumerable(filter.filter.filterGroups)
-      .SelectMany((fg: FilterGroup) => fg.filters)
-      .Where((f: Filter) => {
-        return f.value !== undefined;
+    const wrkFilters = asEnumerable(this.columnFilters)
+      .Where((f: DataColumnFilterValue) => {
+        return f.value !== undefined && f.value !== '';
       })
-      .Select((f: Filter) => {
+      .Select((f: DataColumnFilterValue) => {
         return [
           {
-            name: `${queryPrefix}${f.field.toLowerCase()}_a`,
+            name: `${queryPrefix}${f.id.toLowerCase()}_a`,
             value: f.action,
           },
           {
-            name: `${queryPrefix}${f.field.toLowerCase()}_v`,
+            name: `${queryPrefix}${f.id.toLowerCase()}_v`,
             value: f.value,
           },
         ];
