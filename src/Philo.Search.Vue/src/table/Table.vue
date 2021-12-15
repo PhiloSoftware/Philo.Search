@@ -500,7 +500,7 @@ export default class Table extends Vue {
         const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_v`]
         
         if (queryActionParam === undefined || queryValueParam === undefined) {
-          cf.action = Comparator.Eq;
+          cf.action = cf.action;
           cf.value = undefined;
           return;
         }
