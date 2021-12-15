@@ -1,9 +1,10 @@
 import Table from "./Table.vue";
-
+import StoryRouter from '../router'
 
 export default {
   component: Table,
   title: "Components/Table",
+  decorators: [StoryRouter()]
 };
 
 const Template = (args, { argTypes }) => ({
@@ -37,7 +38,7 @@ basic.args = {
   tableId: "yolo",
   page: 1,
   pageSize: 10,
-  bindToQueryString: false,
+  bindToQueryString: true,
   rowClickable: true,
   columns: [
     {
