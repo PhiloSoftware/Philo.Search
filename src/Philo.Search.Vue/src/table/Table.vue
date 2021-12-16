@@ -88,7 +88,7 @@
                       v-model="filter.value"
                       :min="filter.props.min"
                       :max="filter.props.max"
-                      @keyup="requestDataLoad"
+                      @change="requestDataLoad"
                     />
                   </slot>
                 </template>
@@ -500,9 +500,9 @@ export default class Table extends Vue {
 
       this.columnFilters.forEach(cf => {
         // @ts-ignore
-        const queryActionParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
+        const queryActionParam = this.$route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
         // @ts-ignore
-        const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_v`]
+        const queryValueParam = this.$route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
         
         if (queryActionParam === undefined || queryValueParam === undefined) {
           cf.action = cf.action;
