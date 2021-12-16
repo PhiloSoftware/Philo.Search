@@ -454,18 +454,21 @@ export default class Table extends Vue {
       query[filter.name] = filter.value;
     });
 
+    // @ts-ignore
     if (this.$route) {
+      // @ts-ignore
       var retValue = !DeepEqual(this.$route.query, query);
       if (!retValue) {
         return retValue;
       }
 
+      // @ts-ignore
       return this.$router
         .push({
           query: query,
         })
         .then(() => false)
-        .catch((err) => {
+        .catch((err: { name: string }) => {
           if (err.name != "NavigationDuplicated") {
             throw err;
           }
@@ -496,7 +499,9 @@ export default class Table extends Vue {
       var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
 
       this.columnFilters.forEach(cf => {
+        // @ts-ignore
         const queryActionParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_a`]
+        // @ts-ignore
         const queryValueParam = this.$route.query[`${queryPrefix}${cf.field.toLowerCase()}_v`]
         
         if (queryActionParam === undefined || queryValueParam === undefined) {
