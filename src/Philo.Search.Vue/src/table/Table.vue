@@ -164,7 +164,9 @@
             :name="tableId"
             :columns="visibleColumns"
             :data="fetchData"
+            :page="pageModel"
             :perPage="pageSize"
+            :waitForPager="true"
             responsive
             class="filteredTable"
           >
@@ -188,7 +190,6 @@
       <div :class="rowClass">
         <div :class="colClass">
           <datatable-pager
-            v-model="pageModel"
             :table="tableId"
             type="abbreviated"
             class="pagination"
@@ -368,7 +369,9 @@ export default class Table extends Vue {
   }
 
   private async requestDataLoad(): Promise<void> {
-    await this.$refs.dataTable.processRows();
+    if (this.$refs.dataTable) {
+      await this.$refs.dataTable.processRows();
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -419,17 +422,17 @@ export default class Table extends Vue {
   }
 
   public async filterChanged(filter: FilterSet): Promise<boolean> {
+    var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
+
     const query: Dictionary<string> = {};
 
-    query.page = filter.pageNumber.toString();
-    query.pagesize = filter.pageSize.toString();
+    query[`${queryPrefix}page`] = filter.pageNumber.toString();
+    query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
 
     if (filter.sortBy) {
-      query.sort = filter.sortBy;
-      query.sort_dir = filter.sortDir;
+      query[`${queryPrefix}sort`] = filter.sortBy;
+      query[`${queryPrefix}sort_dir`] = filter.sortDir;
     }
-
-    var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
 
     const wrkFilters = asEnumerable(this.columnFilters)
       .Where((f: DataColumnFilterValue) => {
@@ -488,6 +491,11 @@ export default class Table extends Vue {
       "",
       SortDirection.Desc
     );
+    
+    // @ts-ignore
+    if (this.$route) {
+      this.querychanged();
+    }
 
     Vue.set(this, "processor", this.processor);
   }
@@ -497,6 +505,40 @@ export default class Table extends Vue {
     if (this.bindToQueryString) {
       let hasChanged = false;
       var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
+
+      // @ts-ignore
+      const page = this.$route.query[`${queryPrefix}page`];
+      // @ts-ignore
+      const pageSize = this.$route.query[`${queryPrefix}pagesize`];
+      if (page !== `${this.pageModel}` || pageSize !== `${this.pageSize}`) {
+        hasChanged = true;
+
+        this.pageModel = Number.parseInt(`${page ?? this.page}`);
+        if (isNaN(this.pageModel)) {
+          this.pageModel = 1;
+        };
+        
+        let lclPageSize = Number.parseInt(`${pageSize || this.pageSize}`);
+        if (isNaN(lclPageSize)) {
+          lclPageSize = this.pageSize;
+        };
+
+        this.processor.setPagination(this.pageModel, lclPageSize)
+      }
+
+      const sort = this.$route.query[`${queryPrefix}sort`];
+      const sortDir = this.$route.query[`${queryPrefix}sort_dir`];
+      if (this.sort !== sort || this.sortDir !== sortDir) {
+        hasChanged = true;
+
+        this.processor.setSort(
+          `${sort}`,
+          // webpack dies when importing ESortDir :/
+          sortDir === "Asc"
+            ? SortDirection.Asc
+            : SortDirection.Desc
+        );
+      }
 
       this.columnFilters.forEach(cf => {
         // @ts-ignore
