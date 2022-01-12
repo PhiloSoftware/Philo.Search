@@ -1,6 +1,6 @@
 {
   "name": "philo-search-vue",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Search datasets with filters",
   "types": "./lib/index.d.ts",
   "style": "./lib/index.css",

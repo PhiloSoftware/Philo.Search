@@ -530,7 +530,9 @@ export default class Table extends Vue {
         this.processor.setPagination(this.pageModel, lclPageSize)
       }
 
+      // @ts-ignore
       const sort = this.$route.query[`${queryPrefix}sort`];
+      // @ts-ignore
       const sortDir = this.$route.query[`${queryPrefix}sort_dir`];
       if (this.sort !== sort || this.sortDir !== sortDir) {
         hasChanged = true;
