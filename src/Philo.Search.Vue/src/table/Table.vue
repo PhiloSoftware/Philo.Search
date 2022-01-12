@@ -500,6 +500,10 @@ export default class Table extends Vue {
     Vue.set(this, "processor", this.processor);
   }
 
+  mounted(): void {
+    this.$refs.dataTable.page = this.pageModel
+  }
+
   @Watch("$route.query")
   querychanged() {
     if (this.bindToQueryString) {
@@ -532,7 +536,7 @@ export default class Table extends Vue {
         hasChanged = true;
 
         this.processor.setSort(
-          `${sort}`,
+          `${sort ?? this.sort}`,
           // webpack dies when importing ESortDir :/
           sortDir === "Asc"
             ? SortDirection.Asc
