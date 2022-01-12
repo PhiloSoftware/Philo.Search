@@ -326,7 +326,7 @@ export default class Processor {
       .ToArray();
 
     return {
-      operator: FilterOperator.Or,
+      operator: FilterOperator.And,
       filters: regFilters,
       filterGroups: inFilters,
     };

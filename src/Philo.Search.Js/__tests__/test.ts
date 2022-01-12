@@ -37,7 +37,7 @@ test('Simple Filter', () => {
   if (fs.filter.filterGroups.length > 0) {
     const fg = fs.filter.filterGroups[0];
 
-    expect(fg.operator).toBe(FilterOperator.Or);
+    expect(fg.operator).toBe(FilterOperator.And);
     expect(fg.filterGroups.length).toBe(0);
     expect(fg.filters.length).toBe(1);
     
@@ -109,7 +109,7 @@ test('Required Filter', () => {
 
     const fgcol = fs.filter.filterGroups[1];
 
-    expect(fgcol.operator).toBe(FilterOperator.Or);
+    expect(fgcol.operator).toBe(FilterOperator.And);
     expect(fgcol.filterGroups.length).toBe(0);
     expect(fgcol.filters.length).toBe(1);
     
