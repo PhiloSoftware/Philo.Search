@@ -504,6 +504,11 @@ export default class Table extends Vue {
     this.$refs.dataTable.page = this.pageModel
   }
 
+  @Watch('fetchingData')
+  emitFetchingDataForCustomLoaders(val: boolean) {
+    this.$emit('fetching-data', val);
+  }
+
   @Watch("$route.query")
   querychanged() {
     if (this.bindToQueryString) {
