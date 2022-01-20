@@ -1,0 +1,6 @@
+.storybook
+src/*
+.vscode
+index.html
+tsconfig.json
+vite.config.ts
