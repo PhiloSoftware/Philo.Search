@@ -1,0 +1,40 @@
+{
+  "name": "philo-search-vue3",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "peerDependencies": {
+    "@jobinsjp/vue3-datatable": "^1.0.12",
+    "deep-equal": "^2.0.5",
+    "linq-es2015": "^2.5.1",
+    "moment": "^2.29.1",
+    "philo-search-core": "^1.0.7",
+    "ts-debounce": "^4.0.0",
+    "vue": "^3.2.25"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.7",
+    "@jobinsjp/vue3-datatable": "^1.0.12",
+    "@storybook/addon-actions": "^6.4.13",
+    "@storybook/addon-essentials": "^6.4.13",
+    "@storybook/addon-links": "^6.4.13",
+    "@storybook/vue3": "^6.4.13",
+    "@vitejs/plugin-vue": "^2.0.0",
+    "babel-loader": "^8.2.3",
+    "linq-es2015": "^2.5.1",
+    "moment": "^2.29.1",
+    "storybook-vue3-router": "^2.2.1",
+    "ts-debounce": "^4.0.0",
+    "typescript": "^4.4.4",
+    "vite": "^2.7.2",
+    "vue": "^3.2.25",
+    "vue-loader": "^16.8.3",
+    "vue-router": "^4.0.12",
+    "vue-tsc": "^0.29.8"
+  }
+}
