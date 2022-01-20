@@ -62,7 +62,6 @@ const filterChanged = async (filter: FilterSet): Promise<boolean> => {
 
     const query: { [id: string] : string; } = {};
 
-    debugger
     query[`${queryPrefix}page`] = filter.pageNumber.toString();
     query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
 
