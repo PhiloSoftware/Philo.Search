@@ -29,7 +29,7 @@ export const basic = Template.bind({});
 basic.args = {
   tableId: "yolo",
   page: 1,
-  pageSize: 10,
+  pageSize: 25,
   bindToQueryString: true,
   rowClickable: true,
   columns: [
@@ -140,7 +140,7 @@ basic.args = {
     ];
     return {
       rows: rows,
-      totalRowCount: rows.length,
+      totalRowCount: rows.length + 20,
     };
   },
 };

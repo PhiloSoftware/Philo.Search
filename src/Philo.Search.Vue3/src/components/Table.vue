@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { DataTable } from '@jobinsjp/vue3-datatable'
 import { asEnumerable } from "linq-es2015";
@@ -10,7 +10,8 @@ import {
   FilterSet,
   Processor,
   SortDirection,
-  ColumnFilterType
+  ColumnFilterType,
+Comparator
 } from 'philo-search-core'
 const props = defineProps<{
   tableId: string,
@@ -18,7 +19,7 @@ const props = defineProps<{
   rowClickable: boolean,
   bindToQueryString: boolean,
   sort: string,
-  sortDir: SortDirection,
+  sortDir: SortDirection
   page: number,
   pageSize: number,
   columns: Array<DataColumn>,
@@ -36,7 +37,6 @@ const processor = ref(new Processor(
 ))
 
 const rows = ref<any[]>([])
-const pagination = ref({})
 
 const showFilter = ref(false)
 const toggleFilterShow = (): void => {
@@ -62,6 +62,7 @@ const filterChanged = async (filter: FilterSet): Promise<boolean> => {
 
     const query: { [id: string] : string; } = {};
 
+    debugger
     query[`${queryPrefix}page`] = filter.pageNumber.toString();
     query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
 
@@ -116,8 +117,24 @@ const filterChanged = async (filter: FilterSet): Promise<boolean> => {
 };
 
 const fetchingData = ref(false)
-const loadData = async () => {
+const pagination = ref({
+  page: props.page,
+  per_page: props.pageSize,
+  total: 0
+})
+const loadData = async (query: {
+  page: number,
+  search: '',
+  per_page: number | string
+}) => {
   fetchingData.value = true;
+
+  if (query) {
+    pagination.value.page = query.page;
+    // per_page comes through as a string
+    pagination.value.per_page = parseInt(`${query.per_page}`);
+    processor.value.setPagination(pagination.value.page, pagination.value.per_page);
+  }
 
   const filter = processor.value.doSearch();
   if (props.bindToQueryString) {
@@ -128,11 +145,23 @@ const loadData = async () => {
   // this.$emit("filter-change", filter);
   const res = await props.fetchRows(filter)
   rows.value = res.rows
-  pagination.value = { ...pagination.value, page: filter.pageNumber, total: res.totalRowCount }
+  pagination.value = { 
+    ...pagination.value,
+    page: filter.pageNumber,
+    total: res.totalRowCount,
+    per_page: filter.pageSize,
+  }
 };
+const loadDataWithLastQuery = async() => {
+  return loadData({
+    page: pagination.value.page,
+    search: "",
+    per_page: pagination.value.per_page
+  })
+}
 
 import { debounce } from "ts-debounce";
-const requestDataLoad: () => void = debounce(loadData, 400)
+const requestDataLoad: () => void = debounce(loadDataWithLastQuery, 400)
 
 const themes = {
   bootstrap: {
@@ -162,6 +191,70 @@ switch (props.theme) {
 }
 
 const columnFilterType = ColumnFilterType;
+
+if (route) {
+  watch(() => route?.query, () => {
+    if (props.bindToQueryString) {
+      let hasChanged = false;
+      var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
+
+      const page = route.query[`${queryPrefix}page`];
+      const pageSize = route.query[`${queryPrefix}pagesize`];
+      if (page !== `${pagination.value.page}` || pageSize !== `${props.pageSize}`) {
+        hasChanged = true;
+
+        pagination.value.page = Number.parseInt(`${page ?? props.page}`);
+        if (isNaN(pagination.value.page)) {
+          pagination.value.page = 1;
+        };
+        
+        let lclPageSize = Number.parseInt(`${pageSize || props.pageSize}`);
+        if (isNaN(lclPageSize)) {
+          lclPageSize = props.pageSize;
+        };
+
+        processor.value.setPagination(pagination.value.page, lclPageSize)
+      }
+
+      const sort = route.query[`${queryPrefix}sort`];
+      const sortDir = route.query[`${queryPrefix}sort_dir`];
+      if (props.sort !== sort || props.sortDir !== sortDir) {
+        hasChanged = true;
+
+        processor.value.setSort(
+          `${sort ?? props.sort}`,
+          sortDir === "Asc"
+            ? SortDirection.Asc
+            : SortDirection.Desc
+        );
+      }
+
+      processor.value.columnFilters.forEach(cf => {
+        const queryActionParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
+        const queryValueParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
+        
+        if (queryActionParam === undefined || queryValueParam === undefined) {
+          cf.action = cf.action;
+          cf.value = undefined;
+          return;
+        }
+
+        if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
+          cf.action = Comparator[queryActionParam as keyof typeof Comparator];
+          hasChanged = true;
+        }
+        if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
+          hasChanged = true;
+          cf.value = queryValueParam
+        }
+      })
+      
+      if (hasChanged) {
+        requestDataLoad();
+      }
+    }
+  })
+}
 
 </script>
 
@@ -318,7 +411,6 @@ const columnFilterType = ColumnFilterType;
               <path
                 fill="currentColor"
                 d="M370.72 133.28C339.458 104.008 298.888 87.962 255.848 88c-77.458.068-144.328 53.178-162.791 126.85-1.344 5.363-6.122 9.15-11.651 9.15H24.103c-7.498 0-13.194-6.807-11.807-14.176C33.933 94.924 134.813 8 256 8c66.448 0 126.791 26.136 171.315 68.685L463.03 40.97C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.749zM32 296h134.059c21.382 0 32.09 25.851 16.971 40.971l-41.75 41.75c31.262 29.273 71.835 45.319 114.876 45.28 77.418-.07 144.315-53.144 162.787-126.849 1.344-5.363 6.122-9.15 11.651-9.15h57.304c7.498 0 13.194 6.807 11.807 14.176C478.067 417.076 377.187 504 256 504c-66.448 0-126.791-26.136-171.315-68.685L48.97 471.03C33.851 486.149 8 475.441 8 454.059V320c0-13.255 10.745-24 24-24z"
-                class=""
               ></path>
             </svg>
           </div>
@@ -370,36 +462,70 @@ const columnFilterType = ColumnFilterType;
   margin-bottom: 0.4em;
 }
 .reload svg.rotating {
-    @keyframes rotating {
-      from {
-        transform: rotate(0deg);
-        -o-transform: rotate(0deg);
-        -ms-transform: rotate(0deg);
-        -moz-transform: rotate(0deg);
-        -webkit-transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -webkit-transform: rotate(360deg);
-      }
+  @keyframes rotating {
+    from {
+      transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -ms-transform: rotate(0deg);
+      -moz-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
     }
-    @-webkit-keyframes rotating {
-      from {
-        transform: rotate(0deg);
-        -webkit-transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-        -webkit-transform: rotate(360deg);
-      }
+    to {
+      transform: rotate(360deg);
+      -o-transform: rotate(360deg);
+      -ms-transform: rotate(360deg);
+      -moz-transform: rotate(360deg);
+      -webkit-transform: rotate(360deg);
     }
-    -webkit-animation: rotating 2s linear infinite;
-    -moz-animation: rotating 2s linear infinite;
-    -ms-animation: rotating 2s linear infinite;
-    -o-animation: rotating 2s linear infinite;
-    animation: rotating 2s linear infinite;
   }
+  @-webkit-keyframes rotating {
+    from {
+      transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+      -webkit-transform: rotate(360deg);
+    }
+  }
+  -webkit-animation: rotating 2s linear infinite;
+  -moz-animation: rotating 2s linear infinite;
+  -ms-animation: rotating 2s linear infinite;
+  -o-animation: rotating 2s linear infinite;
+  animation: rotating 2s linear infinite;
+}
+
+.slide-down-enter-active {
+  -moz-transition-duration: 0.3s;
+  -webkit-transition-duration: 0.3s;
+  -o-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -moz-transition-timing-function: ease-in;
+  -webkit-transition-timing-function: ease-in;
+  -o-transition-timing-function: ease-in;
+  transition-timing-function: ease-in;
+}
+
+.slide-down-leave-active {
+  -moz-transition-duration: 0.3s;
+  -webkit-transition-duration: 0.3s;
+  -o-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -moz-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  -webkit-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  -o-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+
+.slide-down-enter-to,
+.slide-down-leave {
+  max-height: 100px;
+  overflow: hidden;
+}
+
+.slide-down-enter,
+.slide-down-leave-to {
+  overflow: hidden;
+  max-height: 0;
+}
 </style>
