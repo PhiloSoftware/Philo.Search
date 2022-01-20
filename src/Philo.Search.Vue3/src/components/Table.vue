@@ -2,8 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { DataTable } from '@jobinsjp/vue3-datatable'
-import { asEnumerable } from "linq-es2015";
-import DeepEqual from "deep-equal";
+import DeepEqual from "fast-deep-equal";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -44,9 +43,8 @@ const toggleFilterShow = (): void => {
 }
 
 const cols = computed(() => {
-  const cols = asEnumerable(processor.value.columns)
-    .Where((c) => c.visible !== false)
-    .ToArray();
+  const cols = processor.value.columns
+    .filter(c => c.visible !== false)
 
   const initialValue: { [id: string] : string; } = {};
   cols.forEach(c => {
@@ -70,11 +68,11 @@ const filterChanged = async (filter: FilterSet): Promise<boolean> => {
       query[`${queryPrefix}sort_dir`] = filter.sortDir;
     }
 
-    const wrkFilters = asEnumerable(processor.value.columnFilters)
-      .Where((f: DataColumnFilterValue) => {
+    const wrkFilters = processor.value.columnFilters
+      .filter((f: DataColumnFilterValue) => {
         return f.value !== undefined && f.value !== '';
       })
-      .Select((f: DataColumnFilterValue) => {
+      .map((f: DataColumnFilterValue) => {
         return [
           {
             name: `${queryPrefix}${f.id.toLowerCase()}_a`,
@@ -86,8 +84,7 @@ const filterChanged = async (filter: FilterSet): Promise<boolean> => {
           },
         ];
       })
-      .SelectMany((l: Array<{ name: string; value: unknown }>) => l)
-      .ToArray();
+      .flatMap((l: Array<{ name: string; value: unknown }>) => l)
 
     wrkFilters.forEach((filter: { name: string; value: any }) => {
       query[filter.name] = filter.value;

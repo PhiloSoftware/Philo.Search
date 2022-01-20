@@ -1,6 +1,6 @@
 {
   "name": "philo-search-core",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": "Philo Software",
   "license": "ISC",
   "description": "Search datasets with filters",
@@ -31,7 +31,6 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "linq-es2015": "^2.5.1",
     "moment": "^2.29.1"
   }
 }

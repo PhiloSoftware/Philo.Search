@@ -1,4 +1,3 @@
-import { asEnumerable } from "linq-es2015";
 import * as moment from "moment";
 import {
   ColumnFilterType,
@@ -60,10 +59,10 @@ export default class Processor {
   }
 
   public buildColumnFilters(): void {
-    const filters: Array<DataColumnFilterValue> = asEnumerable(this.columns)
-      .Where((c) => c.filter !== undefined)
-      .Where((c) => (c.filter?.visible ?? true) === true)
-      .SelectMany((c) => {
+    const filters: Array<DataColumnFilterValue> = this.columns
+      .filter((c) => c.filter !== undefined)
+      .filter((c) => (c.filter?.visible ?? true) === true)
+      .flatMap((c) => {
         const res: Array<DataColumnFilterValue> = [];
 
         if (c.filter === undefined) {
@@ -130,8 +129,7 @@ export default class Processor {
         }
 
         return res;
-      })
-      .ToArray();
+      });
 
     this.columnFilters = filters;
   }
@@ -169,15 +167,15 @@ export default class Processor {
   private getReqFilterGroupForFilters(
     filters: Array<RequiredFilter>
   ): FilterGroup {
-    const regFilters: Array<Filter> = asEnumerable(filters)
-      .Where((cf) => cf.action !== "In")
-      .Where(
+    const regFilters: Array<Filter> = filters
+      .filter((cf) => cf.action !== "In")
+      .filter(
         (cf) =>
           typeof cf.value === "boolean" ||
           cf.nullable ||
           (cf.value !== "" && cf.value !== null)
       )
-      .Select((cf) => {
+      .map((cf) => {
         let retValue: ColumnFilterValue = "";
 
         if (!Array.isArray(cf.value)) {
@@ -205,18 +203,17 @@ export default class Processor {
         };
         return emptyReturn;
       })
-      .Where((f) => f !== undefined && f?.value !== "")
-      .ToArray();
+      .filter((f) => f !== undefined && f?.value !== "");
 
-    const inFilters: Array<FilterGroup> = asEnumerable(filters)
-      .Where((cf) => cf.action === "In")
-      .Where(
+    const inFilters: Array<FilterGroup> = filters
+      .filter((cf) => cf.action === "In")
+      .filter(
         (cf) =>
           typeof cf.value === "boolean" ||
           (cf.value !== "" && cf.value !== null)
       )
-      .Where((cf) => cf.value !== undefined)
-      .Select((cf) => {
+      .filter((cf) => cf.value !== undefined)
+      .map((cf) => {
         let retVal: Array<Filter> = [];
         if (Array.isArray(cf.value)) {
           retVal = cf.value?.map((v) => {
@@ -240,8 +237,7 @@ export default class Processor {
           filterGroups: [],
         };
       })
-      .Where((f) => f.filters.length > 0)
-      .ToArray();
+      .filter((f) => f.filters.length > 0);
 
     return {
       operator: FilterOperator.And,
@@ -255,16 +251,16 @@ export default class Processor {
     queryOverride?: string
   ): FilterGroup {
     // regular filters (not In)
-    const regFilters: Array<Filter> = asEnumerable(filters)
-      .Where((cf) => cf.action !== Comparator.In)
+    const regFilters: Array<Filter> = filters
+      .filter((cf) => cf.action !== Comparator.In)
       // get rid of columns that have no impact
-      .Where(
+      .filter(
         (cf) =>
           cf.type === ColumnFilterType.bool ||
           cf.nullable ||
           (cf.value !== "" && cf.value !== undefined)
       )
-      .Select((cf) => {
+      .map((cf) => {
         let retValue: ColumnFilterValue = "";
 
         if (!Array.isArray(cf.value)) {
@@ -285,19 +281,18 @@ export default class Processor {
 
         return returnValue;
       })
-      .Where((f) => f !== undefined && f.value !== "")
-      .ToArray();
+      .filter((f) => f !== undefined && f.value !== "");
 
     // In filters, so we expect a list of possible values
-    const inFilters: Array<FilterGroup> = asEnumerable(filters)
-      .Where((cf) => cf.action === Comparator.In)
-      .Where(
+    const inFilters: Array<FilterGroup> = filters
+      .filter((cf) => cf.action === Comparator.In)
+      .filter(
         (cf) =>
           typeof cf.value === "boolean" ||
           (cf.value !== "" && cf.value !== null)
       )
-      .Where((cf) => cf.value !== undefined)
-      .Select((cf) => {
+      .filter((cf) => cf.value !== undefined)
+      .map((cf) => {
         let retVal: Array<Filter> = [];
         if (Array.isArray(cf.value)) {
           retVal =
@@ -322,8 +317,7 @@ export default class Processor {
           filterGroups: [],
         };
       })
-      .Where((f) => f.filters.length > 0)
-      .ToArray();
+      .filter((f) => f.filters.length > 0)
 
     return {
       operator: FilterOperator.And,
