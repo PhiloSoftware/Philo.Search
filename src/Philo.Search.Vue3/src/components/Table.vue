@@ -10,17 +10,17 @@ import {
   Processor,
   SortDirection,
   ColumnFilterType,
-Comparator
+  Comparator
 } from 'philo-search-core'
 const props = defineProps<{
-  tableId: string,
+  tableId?: string,
   theme?: string,
-  rowClickable: boolean,
-  bindToQueryString: boolean,
-  sort: string,
-  sortDir: SortDirection
-  page: number,
-  pageSize: number,
+  rowClickable?: boolean,
+  bindToQueryString?: boolean,
+  sort?: string,
+  sortDir?: SortDirection
+  page?: number,
+  pageSize?: number,
   columns: Array<DataColumn>,
   fetchRows:  (
     filter: FilterSet
@@ -31,8 +31,8 @@ const processor = ref(new Processor(
   [],
   props.page ?? 1,
   props.pageSize ?? 20,
-  props.sort,
-  props.sortDir
+  props.sort ?? "",
+  props.sortDir ?? SortDirection.Desc
 ))
 
 const rows = ref<any[]>([])
@@ -181,9 +181,9 @@ switch (props.theme) {
 const colClass = ref("t-col")
 switch (props.theme) {
   case "bootstrap":
-    colClass.value = themes.bootstrap.row;
+    colClass.value = themes.bootstrap.col;
   case "vuetify":
-    colClass.value = themes.vuetify.row;
+    colClass.value = themes.vuetify.col;
 }
 
 const columnFilterType = ColumnFilterType;
