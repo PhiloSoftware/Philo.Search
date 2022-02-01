@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { DataTable } from '@jobinsjp/vue3-datatable'
+import DataTable from './DataTable/DataTable.vue'
 import DeepEqual from "fast-deep-equal";
 import {
   DataColumn,
@@ -157,7 +157,7 @@ const loadDataWithLastQuery = async() => {
   })
 }
 
-import { debounce } from "ts-debounce";
+import { debounce } from "./DataTable/utils/helpers";
 const requestDataLoad: () => void = debounce(loadDataWithLastQuery, 400)
 
 const themes = {
@@ -433,14 +433,26 @@ if (route) {
         :columns="cols"
         striped
         @loadData="loadData"
-      ></DataTable>
+      >
+        <template
+          v-for="col in columns"
+          :key="col.field"
+          v-slot:[`cell-${col.field}`]="{ row, value }"
+        >
+          <slot 
+            :name="`cell-${col.field}`"
+            :row="row"
+            :value="value"
+          >
+          </slot>
+        </template>
+      </DataTable>
     </div>
   </div>
 </template>
 
-<style src="@jobinsjp/vue3-datatable/dist/style.css">
-</style>
 <style scoped>
+
 .t-row {
   display: flex;
   width: 100%;

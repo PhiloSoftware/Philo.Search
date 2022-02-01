@@ -16,7 +16,6 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
-        '@jobinsjp/vue3-datatable',
         'deep-equal',
         'moment',
         'vue',
@@ -26,6 +25,7 @@ export default defineConfig({
         // for externalized deps
         globals: {
           vue: 'Vue',
+          moment: 'moment'
         }
       }
     }

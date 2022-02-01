@@ -22,7 +22,11 @@ const Template = (args, { argTypes }) => ({
     //👇 The args will now be passed down to the template
     return { args };
   },
-  template: `<Table v-bind="args"></Table>`,
+  template: `<Table v-bind="args">
+    <template v-slot:cell-firstName="{ row, value }">
+      <b>{{ value }}</b>
+    </template>
+  </Table>`,
 });
 
 export const basic = Template.bind({});
