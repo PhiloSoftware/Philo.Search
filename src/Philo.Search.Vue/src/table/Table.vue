@@ -388,9 +388,9 @@ export default class Table extends Vue {
       this.processor.setSort(
         args.sortBy,
         // webpack dies when importing ESortDir :/
-        args.sortDir.toString() === "Asc"
-          ? SortDirection.Asc
-          : SortDirection.Desc
+        args.sortDir.toString() === "Ascending"
+          ? SortDirection.Ascending
+          : SortDirection.Descending
       );
     }
 
@@ -489,7 +489,7 @@ export default class Table extends Vue {
       this.page,
       this.pageSize,
       "",
-      SortDirection.Desc
+      SortDirection.Descending
     );
     
     // @ts-ignore
@@ -546,8 +546,8 @@ export default class Table extends Vue {
           `${sort ?? this.sort}`,
           // webpack dies when importing ESortDir :/
           sortDir === "Asc"
-            ? SortDirection.Asc
-            : SortDirection.Desc
+            ? SortDirection.Ascending
+            : SortDirection.Descending
         );
       }
 

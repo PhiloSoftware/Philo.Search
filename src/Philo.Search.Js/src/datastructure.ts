@@ -98,6 +98,6 @@ export enum Comparator {
 }
 
 export enum SortDirection {
-  "Asc" = "Asc",
-  "Desc" = "Desc",
+  "Ascending" = "Ascending",
+  "Descending" = "Descending",
 }

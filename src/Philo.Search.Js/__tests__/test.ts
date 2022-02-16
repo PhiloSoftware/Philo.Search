@@ -21,7 +21,7 @@ test('Simple Filter', () => {
     1,
     10,
     "col1",
-    SortDirection.Desc
+    SortDirection.Descending
   )
 
   const fs = processor.doSearch();
@@ -29,7 +29,7 @@ test('Simple Filter', () => {
   expect(fs.pageNumber).toBe(1);
   expect(fs.pageSize).toBe(10);
   expect(fs.sortBy).toBe(cols[0].field);
-  expect(fs.sortDir).toBe(SortDirection.Desc);
+  expect(fs.sortDir).toBe(SortDirection.Descending);
 
   expect(fs.filter.filters.length).toBe(0);
   
@@ -80,7 +80,7 @@ test('Required Filter', () => {
     1,
     10,
     "col1",
-    SortDirection.Desc
+    SortDirection.Descending
   )
 
   const fs = processor.doSearch();
@@ -88,7 +88,7 @@ test('Required Filter', () => {
   expect(fs.pageNumber).toBe(1);
   expect(fs.pageSize).toBe(10);
   expect(fs.sortBy).toBe(cols[0].field);
-  expect(fs.sortDir).toBe(SortDirection.Desc);
+  expect(fs.sortDir).toBe(SortDirection.Descending);
 
   expect(fs.filter.filters.length).toBe(0);
   
