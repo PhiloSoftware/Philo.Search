@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject, nextTick, onBeforeMount, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DataTable from './DataTable/DataTable.vue'
 import DeepEqual from "fast-deep-equal";
@@ -12,6 +12,8 @@ import {
   ColumnFilterType,
   Comparator
 } from 'philo-search-core'
+import { debounce } from "./DataTable/utils/helpers";
+
 const props = defineProps<{
   tableId?: string,
   theme?: string,
@@ -26,6 +28,7 @@ const props = defineProps<{
     filter: FilterSet
   ) => Promise<{ rows: Array<any>; totalRowCount: number }>,
 }>()
+
 const processor = ref(new Processor(
   props.columns ?? [],
   [],
@@ -53,71 +56,18 @@ const cols = computed(() => {
   return initialValue
 })
 
-const router = props.bindToQueryString ? useRouter() : undefined;
-const route  = props.bindToQueryString ? useRoute() : undefined;
-const filterChanged = async (filter: FilterSet): Promise<boolean> => {
-    var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
-
-    const query: { [id: string] : string; } = {};
-
-    query[`${queryPrefix}page`] = filter.pageNumber.toString();
-    query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
-
-    if (filter.sortBy) {
-      query[`${queryPrefix}sort`] = filter.sortBy;
-      query[`${queryPrefix}sort_dir`] = filter.sortDir;
-    }
-
-    const wrkFilters = processor.value.columnFilters
-      .filter((f: DataColumnFilterValue) => {
-        return f.value !== undefined && f.value !== '';
-      })
-      .map((f: DataColumnFilterValue) => {
-        return [
-          {
-            name: `${queryPrefix}${f.id.toLowerCase()}_a`,
-            value: f.action,
-          },
-          {
-            name: `${queryPrefix}${f.id.toLowerCase()}_v`,
-            value: f.value,
-          },
-        ];
-      })
-      .flatMap((l: Array<{ name: string; value: unknown }>) => l)
-
-    wrkFilters.forEach((filter: { name: string; value: any }) => {
-      query[filter.name] = filter.value;
-    });
-
-    if (route && router) {
-      var retValue = !DeepEqual(route.query, query);
-      if (!retValue) {
-        return retValue;
-      }
-
-      return router
-        .push({
-          query: query,
-        })
-        .then(() => false)
-        .catch((err: { name: string }) => {
-          if (err.name != "NavigationDuplicated") {
-            throw err;
-          }
-          return true;
-        });
-    }
-
-    return false;
-};
-
-const fetchingData = ref(false)
 const pagination = ref({
   page: props.page,
   per_page: props.pageSize,
   total: 0
 })
+
+var hasMounted = ref(false);
+onMounted(() => {
+  hasMounted.value = true
+})
+
+const fetchingData = ref(false)
 const loadData = async (query: {
   page: number,
   search: '',
@@ -132,12 +82,18 @@ const loadData = async (query: {
     processor.value.setPagination(pagination.value.page, pagination.value.per_page);
   }
 
+  // wait till mounted as we cannot pull route query params till then
+  if (!hasMounted.value) {
+    return
+  }
+
   const filter = processor.value.doSearch();
   if (props.bindToQueryString) {
     if (await filterChanged(filter)) {
       return;
     }
   }
+
   // this.$emit("filter-change", filter);
   const res = await props.fetchRows(filter)
   rows.value = res.rows
@@ -149,6 +105,7 @@ const loadData = async (query: {
   }
   fetchingData.value = false;
 };
+
 const loadDataWithLastQuery = async() => {
   return loadData({
     page: pagination.value.page,
@@ -157,40 +114,16 @@ const loadDataWithLastQuery = async() => {
   })
 }
 
-import { debounce } from "./DataTable/utils/helpers";
 const requestDataLoad: () => void = debounce(loadDataWithLastQuery, 400)
 
-const themes = {
-  bootstrap: {
-    row: "row",
-    col: "col",
-  },
-  vuetify: {
-    row: "row",
-    col: "col",
-  }
-}
+const routerLocator = (props.bindToQueryString ? inject('router', () => useRouter()) : undefined);
+const router = routerLocator ? routerLocator() : undefined;
 
-const rowClass = ref("t-row")
-switch (props.theme) {
-  case "bootstrap":
-    rowClass.value = themes.bootstrap.row;
-  case "vuetify":
-    rowClass.value =  themes.vuetify.row;
-}
-
-const colClass = ref("t-col")
-switch (props.theme) {
-  case "bootstrap":
-    colClass.value = themes.bootstrap.col;
-  case "vuetify":
-    colClass.value = themes.vuetify.col;
-}
-
-const columnFilterType = ColumnFilterType;
+const routeLocator = props.bindToQueryString ? inject('route', () => useRoute()) : undefined;
+const route  = routeLocator ? routeLocator() : undefined;
 
 if (route) {
-  watch(() => route?.query, () => {
+  const populateFiltersFromQuery = () => {
     if (props.bindToQueryString) {
       let hasChanged = false;
       var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
@@ -229,7 +162,7 @@ if (route) {
       processor.value.columnFilters.forEach(cf => {
         const queryActionParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
         const queryValueParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
-        
+
         if (queryActionParam === undefined || queryValueParam === undefined) {
           cf.action = cf.action;
           cf.value = undefined;
@@ -246,12 +179,106 @@ if (route) {
         }
       })
       
-      if (hasChanged) {
-        requestDataLoad();
-      }
+      return hasChanged
+    }
+  }
+
+  watch(() => route.query, () => {
+    const hasChanged = populateFiltersFromQuery()
+    
+    if (hasChanged) {
+      requestDataLoad();
     }
   })
 }
+
+const filterChanged = async (filter: FilterSet): Promise<boolean> => {
+    var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
+
+    const query: { [id: string] : string; } = {};
+
+    query[`${queryPrefix}page`] = filter.pageNumber.toString();
+    query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
+
+    if (filter.sortBy) {
+      query[`${queryPrefix}sort`] = filter.sortBy;
+      query[`${queryPrefix}sort_dir`] = filter.sortDir;
+    }
+
+    const wrkFilters = processor.value.columnFilters
+      .filter((f: DataColumnFilterValue) => {
+        return f.value !== undefined && f.value !== '';
+      })
+      .map((f: DataColumnFilterValue) => {
+        return [
+          {
+            name: `${queryPrefix}${f.id.toLowerCase()}_a`,
+            value: f.action,
+          },
+          {
+            name: `${queryPrefix}${f.id.toLowerCase()}_v`,
+            value: f.value,
+          },
+        ];
+      })
+      .flatMap((l: Array<{ name: string; value: unknown }>) => l);
+
+    wrkFilters.forEach((filter: { name: string; value: any }) => {
+      query[filter.name] = filter.value;
+    });
+
+    if (route && router) {
+      var retValue = !DeepEqual(route.query, query);
+      if (!retValue) {
+        return retValue;
+      }
+
+      return router
+        .push({
+          query: query,
+        })
+        .then(() => false)
+        .catch((err: { name: string }) => {
+          if (err.name != "NavigationDuplicated") {
+            throw err;
+          }
+          return true;
+        });
+    }
+
+    return false;
+};
+
+
+const themes = {
+  bootstrap: {
+    row: "row",
+    col: "col",
+  },
+  vuetify: {
+    row: "row",
+    col: "col",
+  }
+}
+
+const rowClass = ref("t-row")
+switch (props.theme) {
+  case "bootstrap":
+    rowClass.value = themes.bootstrap.row;
+  case "vuetify":
+    rowClass.value =  themes.vuetify.row;
+}
+
+const colClass = ref("t-col")
+switch (props.theme) {
+  case "bootstrap":
+    colClass.value = themes.bootstrap.col;
+  case "vuetify":
+    colClass.value = themes.vuetify.col;
+}
+
+const columnFilterType = ColumnFilterType;
+
 
 </script>
 
