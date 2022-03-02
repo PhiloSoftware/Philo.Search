@@ -1,6 +1,6 @@
 {
   "name": "philo-search-vue3",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "description": "Search datasets with filters",
   "style": "./dist/style.css",
   "main": "./dist/philo-search-vue3.umd.js",

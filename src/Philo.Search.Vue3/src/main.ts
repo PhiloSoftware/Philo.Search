@@ -25,6 +25,8 @@ export {
 // import { createRouter, createWebHistory } from 'vue-router'
 
 // import App from './App.vue'
+// import Readme from './pages/Readme.vue'
+// import PsTable from './pages/PsTable.vue'
 
 // const app = createApp(App)
 
@@ -34,6 +36,14 @@ export {
 //     {
 //       path: '/',
 //       component: App
+//     },
+//     {
+//       path: '/readme',
+//       component: Readme
+//     },
+//     {
+//       path: '/table',
+//       component: PsTable
 //     },
 //   ],
 // })

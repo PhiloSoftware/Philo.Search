@@ -63,9 +63,6 @@ const pagination = ref({
 })
 
 var hasMounted = ref(false);
-onMounted(() => {
-  hasMounted.value = true
-})
 
 const fetchingData = ref(false)
 const loadData = async (query: {
@@ -105,6 +102,11 @@ const loadData = async (query: {
   }
   fetchingData.value = false;
 };
+
+onMounted(() => {
+  hasMounted.value = true
+  requestDataLoad()
+})
 
 const loadDataWithLastQuery = async() => {
   return loadData({
