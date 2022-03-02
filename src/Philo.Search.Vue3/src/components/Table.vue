@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, inject, nextTick, onBeforeMount, onMounted } from 'vue'
+import { ref, computed, watch, inject, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DataTable from './DataTable/DataTable.vue'
 import DeepEqual from "fast-deep-equal";
@@ -81,12 +81,14 @@ const loadData = async (query: {
 
   // wait till mounted as we cannot pull route query params till then
   if (!hasMounted.value) {
+    fetchingData.value = false
     return
   }
 
   const filter = processor.value.doSearch();
   if (props.bindToQueryString) {
     if (await filterChanged(filter)) {
+      fetchingData.value = false
       return;
     }
   }
@@ -102,11 +104,6 @@ const loadData = async (query: {
   }
   fetchingData.value = false;
 };
-
-onMounted(() => {
-  hasMounted.value = true
-  requestDataLoad()
-})
 
 const loadDataWithLastQuery = async() => {
   return loadData({
@@ -124,67 +121,68 @@ const router = routerLocator ? routerLocator() : undefined;
 const routeLocator = props.bindToQueryString ? inject('route', () => useRoute()) : undefined;
 const route  = routeLocator ? routeLocator() : undefined;
 
-if (route) {
-  const populateFiltersFromQuery = () => {
-    if (props.bindToQueryString) {
-      let hasChanged = false;
-      var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
+const populateFiltersFromQuery = () => {
+  if (props.bindToQueryString) {
+    let hasChanged = false;
+    var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
 
-      const page = route.query[`${queryPrefix}page`];
-      const pageSize = route.query[`${queryPrefix}pagesize`];
-      if (page !== `${pagination.value.page}` || pageSize !== `${props.pageSize}`) {
-        hasChanged = true;
+    const page = route.query[`${queryPrefix}page`];
+    const pageSize = route.query[`${queryPrefix}pagesize`];
+    if (page !== `${pagination.value.page}` || pageSize !== `${props.pageSize}`) {
+      hasChanged = true;
 
-        pagination.value.page = Number.parseInt(`${page ?? props.page}`);
-        if (isNaN(pagination.value.page)) {
-          pagination.value.page = 1;
-        };
-        
-        let lclPageSize = Number.parseInt(`${pageSize || props.pageSize}`);
-        if (isNaN(lclPageSize)) {
-          lclPageSize = props.pageSize;
-        };
-
-        processor.value.setPagination(pagination.value.page, lclPageSize)
-      }
-
-      const sort = route.query[`${queryPrefix}sort`];
-      const sortDir = route.query[`${queryPrefix}sort_dir`];
-      if (props.sort !== sort || props.sortDir !== sortDir) {
-        hasChanged = true;
-
-        processor.value.setSort(
-          `${sort ?? props.sort}`,
-          sortDir === "Asc"
-            ? SortDirection.Asc
-            : SortDirection.Desc
-        );
-      }
-
-      processor.value.columnFilters.forEach(cf => {
-        const queryActionParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
-        const queryValueParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
-
-        if (queryActionParam === undefined || queryValueParam === undefined) {
-          cf.action = cf.action;
-          cf.value = undefined;
-          return;
-        }
-
-        if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
-          cf.action = Comparator[queryActionParam as keyof typeof Comparator];
-          hasChanged = true;
-        }
-        if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
-          hasChanged = true;
-          cf.value = queryValueParam
-        }
-      })
+      pagination.value.page = Number.parseInt(`${page ?? props.page}`);
+      if (isNaN(pagination.value.page)) {
+        pagination.value.page = 1;
+      };
       
-      return hasChanged
-    }
-  }
+      let lclPageSize = Number.parseInt(`${pageSize || props.pageSize}`);
+      if (isNaN(lclPageSize)) {
+        lclPageSize = props.pageSize;
+      };
 
+      processor.value.setPagination(pagination.value.page, lclPageSize)
+    }
+
+    const sort = route.query[`${queryPrefix}sort`];
+    const sortDir = route.query[`${queryPrefix}sort_dir`];
+    if (props.sort !== sort || props.sortDir !== sortDir) {
+      hasChanged = true;
+
+      processor.value.setSort(
+        `${sort ?? props.sort}`,
+        sortDir === "Asc"
+          ? SortDirection.Asc
+          : SortDirection.Desc
+      );
+    }
+
+    processor.value.columnFilters.forEach(cf => {
+      const queryActionParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
+      const queryValueParam = route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
+
+      if (queryActionParam === undefined || queryValueParam === undefined) {
+        cf.action = cf.action;
+        cf.value = undefined;
+        return;
+      }
+
+      if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
+        cf.action = Comparator[queryActionParam as keyof typeof Comparator];
+        hasChanged = true;
+      }
+      if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
+        hasChanged = true;
+        cf.value = queryValueParam
+      }
+    })
+    
+    return hasChanged
+  }
+}
+
+if (route) {
+  
   watch(() => route.query, () => {
     const hasChanged = populateFiltersFromQuery()
     
@@ -194,7 +192,22 @@ if (route) {
   })
 }
 
+onMounted(() => {
+  hasBeenUnmounted.value = false
+  hasMounted.value = true
+  populateFiltersFromQuery()
+  requestDataLoad()
+})
+
+const hasBeenUnmounted = ref(false)
+onBeforeUnmount(() => {
+  hasBeenUnmounted.value = true
+})
+
 const filterChanged = async (filter: FilterSet): Promise<boolean> => {
+  if (hasBeenUnmounted.value) {
+    return false;
+  }
     var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
 
     const query: { [id: string] : string; } = {};

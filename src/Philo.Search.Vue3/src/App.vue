@@ -6,7 +6,7 @@
   App Main<br />
   <ol>
     <li><router-link to="/readme">Read Me</router-link></li>
-    <li><router-link to="/table">Table</router-link></li>
+    <li><router-link to="/table?tbl_page=2&tbl_pagesize=15&tbl_lastname_a=Like&tbl_lastname_v=sdf">Table</router-link></li>
   </ol>
   <router-view></router-view>
 </template>
