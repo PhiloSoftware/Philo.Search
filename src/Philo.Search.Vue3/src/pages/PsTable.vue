@@ -122,7 +122,7 @@ const fetchRows = async (filter: FilterSet) => {
 </script>
 
 <template>
-  <Table tableId="tbl" bind-to-query-string :columns="columns" :fetchRows="fetchRows" />
+  <Table tableId="tbl" bind-to-query-string :columns="columns" theme="bootstrap" :fetchRows="fetchRows" />
 </template>
 
 <style>

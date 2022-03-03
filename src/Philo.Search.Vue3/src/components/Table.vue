@@ -292,17 +292,27 @@ switch (props.theme) {
     colClass.value = themes.vuetify.col;
 }
 
+const btnClass = computed(() => {
+  switch (props.theme) {
+    case "bootstrap":
+      return 'btn btn-outline-primary';
+    case "vuetify":
+      return 'v-btn';
+  }
+  return ""
+})
+
 const columnFilterType = ColumnFilterType;
 
 
 </script>
 
 <template>
-  <div :class="rowClass">
+  <div class="filteredTable" :class="rowClass">
     <div :class="colClass">
       <div :class="rowClass">
         <div :class="colClass" class="t-tiny-col">
-          <button class='show-filters' variant="outline-primary" type="button" @click="toggleFilterShow">
+          <button class='show-filters' type="button" :class="btnClass" @click="toggleFilterShow">
             Filters
           </button>
         </div>
