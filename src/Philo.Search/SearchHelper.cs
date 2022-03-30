@@ -158,6 +158,34 @@ namespace Philo.Search
         case Comparator.LtEq:
           theOperation = Expression.MakeBinary(ExpressionType.LessThanOrEqual, mapping.Body, getConvertedValue());
           break;
+        case Comparator.ILike:
+          {
+            // if it is a string
+            Expression valueExpression;
+
+            if (returntype == typeof(string))
+            {
+              // coalesce the string value to an empty string if null
+              valueExpression = Expression.Coalesce(mapping.Body, Expression.Constant(string.Empty));
+            }
+            else
+            {
+              // otherwise just ToString it and the LINQ to SQL provider can deal with it
+              valueExpression = Expression.Call(mapping.Body, typeof(object).GetMethod("ToString"));
+            }
+
+            MethodInfo toLowerMethod = typeof(string).GetMethods()
+              .Where(x => x.Name == "ToLower")
+              .Where(x => x.GetParameters().Length == 0)
+              .First();
+            var loweredValueExpression = Expression.Call(valueExpression, toLowerMethod);
+
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+
+            Expression stringFilter = Expression.Constant(value.ToLower());
+            theOperation = Expression.Call(loweredValueExpression, containsMethod, stringFilter);
+            break;
+          }
         case Comparator.Like:
           {
             // if it is a string
@@ -279,9 +307,23 @@ namespace Philo.Search
             break;
           }
         case Comparator.Like:
+        case Comparator.ILike:
           {
             enumValuesToMatchTo = EnumLike<TPropType>(value);
             break;
+          }
+        case Comparator.NEq:
+          {
+            var eqEnumValue = EnumValueExact<TPropType>(value);
+            if (eqEnumValue != null)
+            {
+              Expression eqValue = Expression.Constant(eqEnumValue, typeof(TPropType));
+              Expression eqOperation = Expression.MakeBinary(ExpressionType.NotEqual, mapping.Body, eqValue);
+              return Expression.Lambda<Func<TEntityType, bool>>(eqOperation, mapping.Parameters[0]);
+            }
+
+            // no matching enum values, return false
+            return BoolResult<TEntityType>(false, mapping.Parameters[0]);
           }
         case Comparator.Eq:
         default:

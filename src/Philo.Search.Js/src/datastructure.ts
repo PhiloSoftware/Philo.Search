@@ -91,6 +91,7 @@ export enum Comparator {
   "Gt" = "Gt",
   "Lt" = "Lt",
   "Like" = "Like",
+  "ILike" = "ILike",
   "GtEq" = "GtEq",
   "LtEq" = "LtEq",
   "NEq" = "NEq",

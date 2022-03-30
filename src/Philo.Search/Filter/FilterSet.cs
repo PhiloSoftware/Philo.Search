@@ -120,6 +120,7 @@ namespace Philo.Search.Filter
     Like,
     GtEq,
     LtEq,
-    NEq
+    NEq,
+    ILike
   }
 }
