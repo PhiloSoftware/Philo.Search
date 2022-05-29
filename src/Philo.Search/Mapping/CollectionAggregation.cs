@@ -20,7 +20,6 @@ namespace Philo.Search.Mapping
     : ICollectionAggregation<TRootEntityType, TSubCollectionType>
     where TRootEntityType : class
     where TCollectionEntityType : class
-    where TSubCollectionType : class
   {
     private readonly AggregateOperation operation;
     private readonly ICollectionAggregation<TRootEntityType, TCollectionEntityType> collection;
