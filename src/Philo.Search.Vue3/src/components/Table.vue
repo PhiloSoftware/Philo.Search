@@ -24,10 +24,13 @@ const props = defineProps<{
   page?: number,
   pageSize?: number,
   columns: Array<DataColumn>,
+  fetchRequired: boolean,
   fetchRows:  (
     filter: FilterSet
   ) => Promise<{ rows: Array<any>; totalRowCount: number }>,
 }>()
+
+var emit = defineEmits(["fetchRequired"])
 
 const processor = ref(new Processor(
   props.columns ?? [],
@@ -103,6 +106,9 @@ const loadData = async (query: {
     per_page: filter.pageSize,
   }
   fetchingData.value = false;
+
+  
+  emit('fetchRequired', false)
 };
 
 const loadDataWithLastQuery = async() => {
@@ -180,6 +186,12 @@ const populateFiltersFromQuery = () => {
     return hasChanged
   }
 }
+
+watch(() => props.fetchRequired, (nval: boolean) => {
+  if (nval === true) {
+    requestDataLoad();
+  }
+})
 
 if (route) {
   

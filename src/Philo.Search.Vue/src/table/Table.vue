@@ -270,7 +270,7 @@ export default class Table extends Vue {
   @Prop({
     type: String,
     required: false,
-    default: "desc",
+    default: "Descending",
   })
   sortDir!: string;
 
@@ -287,6 +287,13 @@ export default class Table extends Vue {
     default: 20,
   })
   pageSize!: number;
+
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false,
+  })
+  fetchRequired!: number;
 
   @Prop({
     type: Array,
@@ -388,7 +395,7 @@ export default class Table extends Vue {
       this.processor.setSort(
         args.sortBy,
         // webpack dies when importing ESortDir :/
-        args.sortDir.toString() === "Ascending"
+        args.sortDir?.toString() === "asc"
           ? SortDirection.Ascending
           : SortDirection.Descending
       );
@@ -405,6 +412,8 @@ export default class Table extends Vue {
     this.$emit("filter-change", filter);
 
     var rowRes = await this.fetchRows(filter);
+
+    this.$emit("fetchRequired", false);
 
     this.pagingInfo.totalRows = rowRes.totalRowCount;
     this.pagingInfo.currentIdx = Math.max(
@@ -507,6 +516,13 @@ export default class Table extends Vue {
   @Watch('fetchingData')
   emitFetchingDataForCustomLoaders(val: boolean) {
     this.$emit('fetching-data', val);
+  }
+
+  @Watch('fetchRequired')
+  fetchRequiredChanged(to: boolean, from: boolean) {
+    if (to === true) {
+      this.requestDataLoad();
+    }
   }
 
   @Watch("$route.query")
