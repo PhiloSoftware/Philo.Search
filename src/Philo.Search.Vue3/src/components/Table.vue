@@ -283,8 +283,11 @@ const themes = {
     col: "col",
   },
   vuetify: {
-    row: "row",
-    col: "col",
+    row: "v-row",
+    col: "v-col",
+    colAuto: "v-col-auto",
+    tiny: "v-col-2",
+    max: "v-col-12",
   }
 }
 
@@ -302,6 +305,30 @@ switch (props.theme) {
     colClass.value = themes.bootstrap.col;
   case "vuetify":
     colClass.value = themes.vuetify.col;
+}
+
+const colClassAuto = ref("t-tiny-col")
+switch (props.theme) {
+  case "bootstrap":
+    colClassAuto.value = "t-tiny-col" // TODO;
+  case "vuetify":
+    colClassAuto.value = themes.vuetify.colAuto;
+}
+
+const colClassTiny = ref("t-tiny-col")
+switch (props.theme) {
+  case "bootstrap":
+    colClassTiny.value = "t-tiny-col" // TODO;
+  case "vuetify":
+    colClassTiny.value = themes.vuetify.tiny;
+}
+
+const colClassMax = ref("t-col")
+switch (props.theme) {
+  case "bootstrap":
+    colClassMax.value = "t-col" // TODO;
+  case "vuetify":
+    colClassMax.value = themes.vuetify.max;
 }
 
 const btnClass = computed(() => {
@@ -328,6 +355,29 @@ const columnFilterType = ColumnFilterType;
             Filters
           </button>
         </div>
+        <div v-if="theme === 'vuetify'" class="v-spacer"></div>
+        <div :class="colClassAuto + ' t-ml-auto t-text-right'">
+          <button class="reload" @click="requestDataLoad">
+            <div :class="{ rotating: fetchingData }">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fas"
+              data-icon="sync-alt"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+            >
+              <path
+                fill="currentColor"
+                d="M370.72 133.28C339.458 104.008 298.888 87.962 255.848 88c-77.458.068-144.328 53.178-162.791 126.85-1.344 5.363-6.122 9.15-11.651 9.15H24.103c-7.498 0-13.194-6.807-11.807-14.176C33.933 94.924 134.813 8 256 8c66.448 0 126.791 26.136 171.315 68.685L463.03 40.97C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.749zM32 296h134.059c21.382 0 32.09 25.851 16.971 40.971l-41.75 41.75c31.262 29.273 71.835 45.319 114.876 45.28 77.418-.07 144.315-53.144 162.787-126.849 1.344-5.363 6.122-9.15 11.651-9.15h57.304c7.498 0 13.194 6.807 11.807 14.176C478.067 417.076 377.187 504 256 504c-66.448 0-126.791-26.136-171.315-68.685L48.97 471.03C33.851 486.149 8 475.441 8 454.059V320c0-13.255 10.745-24 24-24z"
+              ></path>
+            </svg>
+            </div>  
+          </button>
+        </div>
+      </div>
+      <div :class="rowClass">
         <div :class="colClass">
           <div :class="rowClass">
             <div :class="colClass">
@@ -464,53 +514,36 @@ const columnFilterType = ColumnFilterType;
             </div>
           </div>
         </div>
-        <div :class="colClass" class="t-tiny-col t-ml-auto t-text-right">
-          <div class="reload">
-            <div :class="{ rotating: fetchingData }">
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              data-prefix="fas"
-              data-icon="sync-alt"
-              role="img"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              
-              @click="requestDataLoad"
-            >
-              <path
-                fill="currentColor"
-                d="M370.72 133.28C339.458 104.008 298.888 87.962 255.848 88c-77.458.068-144.328 53.178-162.791 126.85-1.344 5.363-6.122 9.15-11.651 9.15H24.103c-7.498 0-13.194-6.807-11.807-14.176C33.933 94.924 134.813 8 256 8c66.448 0 126.791 26.136 171.315 68.685L463.03 40.97C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.749zM32 296h134.059c21.382 0 32.09 25.851 16.971 40.971l-41.75 41.75c31.262 29.273 71.835 45.319 114.876 45.28 77.418-.07 144.315-53.144 162.787-126.849 1.344-5.363 6.122-9.15 11.651-9.15h57.304c7.498 0 13.194 6.807 11.807 14.176C478.067 417.076 377.187 504 256 504c-66.448 0-126.791-26.136-171.315-68.685L48.97 471.03C33.851 486.149 8 475.441 8 454.059V320c0-13.255 10.745-24 24-24z"
-              ></path>
-            </svg>
-            </div>  
-          </div>
-        </div>
       </div>
     </div>
   </div>  
   <div :class="rowClass">
-    <div :class="colClass">
-      <DataTable
-        :pagination="pagination"  
-        :rows="rows"
-        :columns="cols"
-        striped
-        @loadData="loadData"
+    <div :class="colClassMax">
+      <slot
+        name="data-table"
+        v-bind="{ pagination, rows, cols, loadData }"
       >
-        <template
-          v-for="col in columns"
-          :key="col.field"
-          v-slot:[`cell-${col.field}`]="{ row, value }"
+        <DataTable
+          :pagination="pagination"  
+          :rows="rows"
+          :columns="cols"
+          striped
+          @loadData="loadData"
         >
-          <slot 
-            :name="`cell-${col.field}`"
-            :row="row"
-            :value="value"
+          <template
+            v-for="col in columns"
+            :key="col.field"
+            v-slot:[`cell-${col.field}`]="{ row, value }"
           >
-          </slot>
-        </template>
-      </DataTable>
+            <slot 
+              :name="`cell-${col.field}`"
+              :row="row"
+              :value="value"
+            >
+            </slot>
+          </template>
+        </DataTable>
+      </slot>
     </div>
   </div>
 </template>
