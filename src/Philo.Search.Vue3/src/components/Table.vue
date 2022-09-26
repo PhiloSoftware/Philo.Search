@@ -112,6 +112,12 @@ const loadData = async (query: {
 };
 
 const loadDataWithLastQuery = async() => {
+  if (props.sortDir && props.sort) {
+    processor.value.setSort(props.sort, props.sortDir)
+  }
+  if (props.sort === '') {
+    processor.value.setSort('', SortDirection.Ascending)
+  }
   return loadData({
     page: pagination.value.page,
     search: "",
