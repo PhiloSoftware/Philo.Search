@@ -344,7 +344,7 @@ const btnClass = computed(() => {
     case "vuetify":
       return 'v-btn';
   }
-  return ""
+  return "t-btn"
 })
 
 const columnFilterType = ColumnFilterType;
@@ -574,6 +574,18 @@ const columnFilterType = ColumnFilterType;
 }
 .t-tiny-col {
   flex: 0 0 80px;
+}
+.t-ml-auto {
+   margin-left:auto;
+}
+.t-btn {
+  border: 1px solid gray;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  border-radius: 5px;
+  margin-bottom: 0.5em;
 }
 .reload {
   cursor: pointer;
