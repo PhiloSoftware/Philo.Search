@@ -297,45 +297,60 @@ const themes = {
   }
 }
 
-const rowClass = ref("t-row")
-switch (props.theme) {
-  case "bootstrap":
-    rowClass.value = themes.bootstrap.row;
-  case "vuetify":
-    rowClass.value =  themes.vuetify.row;
-}
+const rowClass = computed(() => {
+  
+  switch (props.theme) {
+    case "bootstrap":{
+      return themes.bootstrap.row;
+    }
+    case "vuetify":{
+      return  themes.vuetify.row;
+    }
+    default: {
+      return "t-row"
+    }
+  }
 
-const colClass = ref("t-col")
-switch (props.theme) {
-  case "bootstrap":
-    colClass.value = themes.bootstrap.col;
-  case "vuetify":
-    colClass.value = themes.vuetify.col;
-}
+})
 
-const colClassAuto = ref("t-tiny-col")
-switch (props.theme) {
-  case "bootstrap":
-    colClassAuto.value = "t-tiny-col" // TODO;
-  case "vuetify":
-    colClassAuto.value = themes.vuetify.colAuto;
-}
+const colClass = computed(() => {
+  switch (props.theme) {
+    case "bootstrap": {
+      return themes.bootstrap.col;
+    }
+    case "vuetify":{
+      return themes.vuetify.col;
+    }
+      default: {
+        return "t-col"
+      }
+  }
+})
 
-const colClassTiny = ref("t-tiny-col")
-switch (props.theme) {
-  case "bootstrap":
-    colClassTiny.value = "t-tiny-col" // TODO;
-  case "vuetify":
-    colClassTiny.value = themes.vuetify.tiny;
-}
+const colClassAuto = computed(() => {
+  switch (props.theme) {
+    case "vuetify":{
+      return themes.vuetify.colAuto;
+    }
+    default: {
+      return "t-tiny-col"
+    }
+  }
+})
 
-const colClassMax = ref("t-col")
-switch (props.theme) {
-  case "bootstrap":
-    colClassMax.value = "t-col" // TODO;
-  case "vuetify":
-    colClassMax.value = themes.vuetify.max;
-}
+const colClassMax = computed(() => {
+  switch (props.theme) {
+    case "bootstrap": {
+      return 'col'
+    }
+    case "vuetify":{
+      return themes.vuetify.max;
+    }
+    default: {
+      return "t-col"
+    }
+  }
+})
 
 const btnClass = computed(() => {
   switch (props.theme) {
