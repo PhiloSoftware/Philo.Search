@@ -34,6 +34,7 @@ const Template = (args, { argTypes }) => ({
 });
 
 export const basic = Template.bind({});
+
 basic.args = {
   tableId: "yolo",
   page: 1,
@@ -102,6 +103,7 @@ basic.args = {
         props: {
           multiple: true,
         },
+        value: [],
         options: [
           {
             value: "bee",
@@ -121,7 +123,6 @@ basic.args = {
   ],
   fetchRows: async (filter) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log(filter);
     const rows = [
       {
         firstName: "Billy",

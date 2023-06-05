@@ -10,6 +10,7 @@
     "declaration": true,
     "importHelpers": true,
     "strict": true,
+    "noImplicitThis": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports":true
   },

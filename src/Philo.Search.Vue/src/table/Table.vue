@@ -1,3 +1,376 @@
+<script lang="ts" setup>
+import Vue, { PropType, computed, inject, onMounted, ref, watch } from "vue";
+import { debounce } from "ts-debounce";
+import DeepEqual from "deep-equal";
+import { asEnumerable } from "linq-es2015";
+import { Dictionary, Route, VueRouter } from "vue-router/types/router";
+import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
+import Processor from "philo-search-core/lib/processor";
+import {
+  DataColumn,
+  DataColumnFilterValue,
+  FilterSet,
+  SortDirection,
+  ColumnFilterType
+} from "philo-search-core";
+import PsVueDataTable from "./PsVueDataTable";
+import { Comparator } from "philo-search-core/lib/datastructure";
+
+Vue.use(VuejsDatatableFactory);
+
+const props = defineProps({
+  tableId: {
+    type: String,
+    default: "",
+    required: false
+  },
+  theme: {
+    type: String,
+    default: "",
+    required: false
+  },
+  rowClickable: {
+    type: Boolean,
+    default: false,
+    required: false
+  },
+  bindToQueryString: {
+    type: Boolean,
+    default: false,
+    required: false
+  },
+  sort: {
+    type: String,
+    default: "",
+    required: false
+  },
+  sortDir: {
+    type: String,
+    default: "Descending",
+    required: false
+  },
+  page: {
+    type: Number,
+    default: 1,
+    required: false
+  },
+  pageSize: {
+    type: Number,
+    default: 20,
+    required: false
+  },
+  fetchRequired: {
+    type: Boolean,
+    default: false,
+    required: false
+  },
+  columns: {
+    type: Array<DataColumn>,
+    default: [],
+    required: true
+  },
+  fetchRows: {
+    type: Function as PropType<(
+      filter: FilterSet
+    ) => Promise<{ rows: Array<any>; totalRowCount: number }>>,
+    default: [],
+    required: true
+  },
+})
+
+const processor = ref<Processor>(
+  new Processor(
+    props.columns,
+    [],
+    props.page,
+    props.pageSize,
+    "",
+    SortDirection.Descending
+  ));
+
+const dataTable = ref<PsVueDataTable<{}>>();
+
+const dataLoadFailed = ref(false);
+const fetchingData = ref(false);
+const showFilter = ref(false);
+const pageModel = ref(props.page);
+const items = ref<Record<string, any>[]>([]);
+
+const pagingInfo = ref({
+  currentIdx: 0,
+  currentMaxIdx: 0,
+  totalRows: 0,
+});
+
+const themes = ref(
+  {
+    bootstrap: {
+      row: "row",
+      col: "col",
+    },
+    vuetify: {
+      row: "row",
+      col: "col",
+    }
+  });
+
+const rowClass = computed(() => {
+  switch (props.theme) {
+    case "bootstrap" :
+      return themes.value.bootstrap.row;
+    case "vuetify" :
+      return themes.value.vuetify.row;
+  }
+  return "t-row";
+})
+
+const colClass = computed(() => {
+  switch (props.theme) {
+    case "bootstrap" :
+      return themes.value.bootstrap.col;
+    case "vuetify" :
+      return themes.value.vuetify.col;
+  }
+  return "t-col";
+})
+
+const columnFilters = computed(() => {
+  const cf = processor.value.columnFilters;
+
+  cf.forEach(c => {
+    if (!c.value && c.props.multiple) {
+      c.value = []
+    }
+  })
+
+  return cf;
+});
+
+const visibleColumns = computed(() => {
+  return asEnumerable(processor.value.columns)
+    .Where((c) => c.visible !== false)
+    .ToArray();
+})
+
+const toggleFilterShow = () => {
+    showFilter.value = !showFilter.value;
+  }
+
+const requestDataLoad = async () => {
+  if (dataTable.value) {
+    await dataTable.value.processRows();
+  }
+}
+
+var emit = defineEmits([
+  'filter-change',
+  'fetchRequired',
+  'fetching-data'
+])
+
+const doFetch = async (args: IDataFnParams<{}>) => {
+  fetchingData.value = true;
+
+  if (args && args.sortBy !== null) {
+    processor.value.setSort(
+      args.sortBy,
+      // webpack dies when importing ESortDir :/
+      args.sortDir?.toString() === "asc"
+        ? SortDirection.Ascending
+        : SortDirection.Descending
+    );
+  }
+
+  processor.value.setPagination(args.page, args.perPage);
+
+  const filter = processor.value.doSearch();
+  if (props.bindToQueryString) {
+    if (await filterChanged(filter)) {
+      return;
+    }
+  }
+  emit("filter-change", filter);
+
+  var rowRes = await props.fetchRows(filter);
+
+  emit("fetchRequired", false);
+
+  pagingInfo.value.totalRows = rowRes.totalRowCount;
+  pagingInfo.value.currentIdx = Math.max(
+    filter.pageSize * filter.pageNumber - filter.pageSize + 1,
+    1
+  );
+  pagingInfo.value.currentMaxIdx = Math.min(
+    filter.pageSize * filter.pageNumber,
+    rowRes.totalRowCount
+  );
+
+  fetchingData.value = false;
+
+  return rowRes;
+}
+
+const fetchData = debounce(
+doFetch,
+400
+);
+
+
+var route = inject<Route>('route')
+var router = inject<VueRouter>('router')
+
+const filterChanged = (filter: FilterSet) => {
+  var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
+
+  const query: Dictionary<string> = {};
+
+  query[`${queryPrefix}page`] = filter.pageNumber.toString();
+  query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
+
+  if (filter.sortBy) {
+    query[`${queryPrefix}sort`] = filter.sortBy;
+    query[`${queryPrefix}sort_dir`] = filter.sortDir;
+  }
+
+  const wrkFilters = asEnumerable(columnFilters.value)
+    .Where((f: DataColumnFilterValue) => {
+      return f.value !== undefined && f.value !== '';
+    })
+    .Select((f: DataColumnFilterValue) => {
+      return [
+        {
+          name: `${queryPrefix}${f.id.toLowerCase()}_a`,
+          value: f.action,
+        },
+        {
+          name: `${queryPrefix}${f.id.toLowerCase()}_v`,
+          value: f.value,
+        },
+      ];
+    })
+    .SelectMany((l: Array<{ name: string; value: unknown }>) => l)
+    .ToArray();
+
+  wrkFilters.forEach((filter: { name: string; value: any }) => {
+    query[filter.name] = filter.value;
+  });
+  
+
+  if (route) {
+    var retValue = !DeepEqual(route.query, query);
+    if (!retValue) {
+      return retValue;
+    }
+
+    return router
+      ?.push({
+        query: query,
+      })
+      .then(() => false)
+      .catch((err: { name: string }) => {
+        if (err.name != "NavigationDuplicated") {
+          throw err;
+        }
+        return true;
+      });
+  }
+
+  return false;
+}
+
+  // created(): void {
+    
+  //   // @ts-ignore
+  //   if (this.$route) {
+  //     this.querychanged();
+  //   }
+
+  //   Vue.set(this, "processor", this.processor);
+  // }
+
+onMounted(() => {
+  if (dataTable.value) {
+    dataTable.value.page = pageModel.value
+  }
+})
+
+watch(() => fetchingData, (to) => {
+  emit('fetching-data', to)
+})
+
+watch(() => props.fetchRequired, (to) => {
+  if (to === true) {
+    requestDataLoad();
+  }
+})
+
+if (route?.query) {
+  watch(() => route?.query, (to) => {
+    if (props.bindToQueryString && route) {
+      let hasChanged = false;
+      var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
+
+      const page = route.query[`${queryPrefix}page`];
+      const pageSize = route.query[`${queryPrefix}pagesize`];
+      if (page !== `${pageModel.value}` || pageSize !== `${props.pageSize}`) {
+        hasChanged = true;
+
+        pageModel.value = Number.parseInt(`${page ?? props.page}`);
+        if (isNaN(pageModel.value)) {
+          pageModel.value = 1;
+        };
+        
+        let lclPageSize = Number.parseInt(`${pageSize || props.pageSize}`);
+        if (isNaN(lclPageSize)) {
+          lclPageSize = props.pageSize;
+        };
+
+        processor.value.setPagination(pageModel.value, lclPageSize)
+      }
+
+      const sort = route.query[`${queryPrefix}sort`];
+      const sortDir = route.query[`${queryPrefix}sort_dir`];
+      if (props.sort !== sort || props.sortDir !== sortDir) {
+        hasChanged = true;
+
+        processor.value.setSort(
+          `${sort ?? props.sort}`,
+          // webpack dies when importing ESortDir :/
+          sortDir === "Asc"
+            ? SortDirection.Ascending
+            : SortDirection.Descending
+        );
+      }
+
+      columnFilters.value.forEach(cf => {
+        const queryActionParam = route?.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
+        const queryValueParam = route?.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
+        
+        if (queryActionParam === undefined || queryValueParam === undefined) {
+          cf.action = cf.action;
+          cf.value = undefined;
+          return;
+        }
+
+        if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
+          cf.action = Comparator[queryActionParam as keyof typeof Comparator];
+          hasChanged = true;
+        }
+        if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
+          hasChanged = true;
+          cf.value = queryValueParam
+        }
+      })
+      
+      if (hasChanged) {
+        requestDataLoad();
+      }
+    }
+
+  })
+}
+</script>
+
 <template>
   <div :class="rowClass">
     <div :class="colClass">
@@ -24,7 +397,7 @@
                     <select
                       v-model="filter.value"
                       :name="filter.id"
-                      :multiple="filter.props.multiple"
+                      :multiple="!!filter.props.multiple"
                       @change="requestDataLoad"
                     >
                       <option
@@ -66,10 +439,10 @@
                     >
                       <option
                         v-if="filter.nullable === true"
-                        :value="null"
+                        :value="undefined"
                       ></option>
-                      <option :value="true">Yes</option>
-                      <option :value="false">No</option>
+                      <option :value="'true'">Yes</option>
+                      <option :value="'false'">No</option>
                     </select>
                   </slot>
                 </template>
@@ -173,7 +546,7 @@
             <template v-slot:default="{ row }">
               <slot name="row" v-bind="row">
                 <tr @click="rowClickable ? $emit('rowclick', row) : null" :class="rowClickable ? 'hover' : ''">
-                  <td v-for="col in visibleColumns" :key="col.id">
+                  <td v-for="col in visibleColumns" :key="col.field">
                     <slot
                       :name="`cell-${col.field}`"
                       v-bind="{ col, row, value: row[col.field] }"
@@ -205,397 +578,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { debounce } from "ts-debounce";
-import DeepEqual from "deep-equal";
-import { asEnumerable } from "linq-es2015";
-import { Dictionary } from "vue-router/types/router";
-import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
-import Processor from "philo-search-core/lib/processor";
-import {
-  DataColumn,
-  DataColumnFilterValue,
-  Filter,
-  FilterGroup,
-  FilterSet,
-  SortDirection,
-  ColumnFilterType
-} from "philo-search-core";
-import PsVueDataTable from "./PsVueDataTable";
-import { Comparator } from "philo-search-core/lib/datastructure";
-
-Vue.use(VuejsDatatableFactory);
-
-@Component
-export default class Table extends Vue {
-  processor!: Processor;
-
-  @Prop({
-    type: String,
-    required: false,
-    default: "",
-  })
-  tableId!: string;
-
-  @Prop({
-    type: String,
-    required: false,
-    default: "",
-  })
-  theme!: string;
-
-  @Prop({
-    type: Boolean,
-    required: false,
-    default: false,
-  })
-  rowClickable!: boolean;
-
-  @Prop({
-    type: Boolean,
-    required: false,
-    default: false,
-  })
-  bindToQueryString!: boolean;
-
-  @Prop({
-    type: String,
-    required: false,
-    default: "",
-  })
-  sort!: string;
-
-  @Prop({
-    type: String,
-    required: false,
-    default: "Descending",
-  })
-  sortDir!: string;
-
-  @Prop({
-    type: Number,
-    required: false,
-    default: 1,
-  })
-  page!: number;
-
-  @Prop({
-    type: Number,
-    required: false,
-    default: 20,
-  })
-  pageSize!: number;
-
-  @Prop({
-    type: Boolean,
-    required: false,
-    default: false,
-  })
-  fetchRequired!: number;
-
-  @Prop({
-    type: Array,
-    required: true,
-    default: [],
-  })
-  columns!: Array<DataColumn>;
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  @Prop({ default: () => {} })
-  public fetchRows!: (
-    filter: FilterSet
-  ) => Promise<{ rows: Array<any>; totalRowCount: number }>;
-
-  $refs!: {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    dataTable: PsVueDataTable<{}>;
-  };
-
-  ColumnFilterType = ColumnFilterType;
-
-  dataLoadFailed = false;
-  fetchingData = false;
-  showFilter = false;
-  pageModel = this.page;
-  items: Record<string, any>[] = [];
-  pagingInfo: {
-    currentIdx: number;
-    currentMaxIdx: number;
-    totalRows: number;
-  } = {
-    currentIdx: 0,
-    currentMaxIdx: 0,
-    totalRows: 0,
-  };
-
-  themes = {
-    bootstrap: {
-      row: "row",
-      col: "col",
-    },
-    vuetify: {
-      row: "row",
-      col: "col",
-    }
-  }
-
-  get rowClass(): string {
-    switch (this.theme) {
-      case "bootstrap" :
-        return this.themes.bootstrap.row;
-      case "vuetify" :
-        return this.themes.vuetify.row;
-    }
-    return "t-row";
-  }
-
-  get colClass(): string {
-    switch (this.theme) {
-      case "bootstrap" :
-        return this.themes.bootstrap.col;
-      case "vuetify" :
-        return this.themes.vuetify.col;
-    }
-    return "t-col";
-  }
-
-  get columnFilters(): Array<DataColumnFilterValue> {
-    return this.processor.columnFilters;
-  }
-
-  get visibleColumns(): Array<DataColumn> {
-    return asEnumerable(this.processor.columns)
-      .Where((c) => c.visible !== false)
-      .ToArray();
-  }
-
-  toggleFilterShow(): void {
-    this.showFilter = !this.showFilter;
-  }
-
-  private async requestDataLoad(): Promise<void> {
-    if (this.$refs.dataTable) {
-      await this.$refs.dataTable.processRows();
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public fetchData: (args: IDataFnParams<{}>) => void = debounce(
-    this.doFetch,
-    400
-  );
-
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  private async doFetch(args: IDataFnParams<{}>) {
-    this.fetchingData = true;
-
-    if (args && args.sortBy !== null) {
-      this.processor.setSort(
-        args.sortBy,
-        // webpack dies when importing ESortDir :/
-        args.sortDir?.toString() === "asc"
-          ? SortDirection.Ascending
-          : SortDirection.Descending
-      );
-    }
-
-    this.processor.setPagination(args.page, args.perPage);
-
-    const filter = this.processor.doSearch();
-    if (this.bindToQueryString) {
-      if (await this.filterChanged(filter)) {
-        return;
-      }
-    }
-    this.$emit("filter-change", filter);
-
-    var rowRes = await this.fetchRows(filter);
-
-    this.$emit("fetchRequired", false);
-
-    this.pagingInfo.totalRows = rowRes.totalRowCount;
-    this.pagingInfo.currentIdx = Math.max(
-      filter.pageSize * filter.pageNumber - filter.pageSize + 1,
-      1
-    );
-    this.pagingInfo.currentMaxIdx = Math.min(
-      filter.pageSize * filter.pageNumber,
-      rowRes.totalRowCount
-    );
-
-    this.fetchingData = false;
-
-    return rowRes;
-  }
-
-  public async filterChanged(filter: FilterSet): Promise<boolean> {
-    var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
-
-    const query: Dictionary<string> = {};
-
-    query[`${queryPrefix}page`] = filter.pageNumber.toString();
-    query[`${queryPrefix}pagesize`] = filter.pageSize.toString();
-
-    if (filter.sortBy) {
-      query[`${queryPrefix}sort`] = filter.sortBy;
-      query[`${queryPrefix}sort_dir`] = filter.sortDir;
-    }
-
-    const wrkFilters = asEnumerable(this.columnFilters)
-      .Where((f: DataColumnFilterValue) => {
-        return f.value !== undefined && f.value !== '';
-      })
-      .Select((f: DataColumnFilterValue) => {
-        return [
-          {
-            name: `${queryPrefix}${f.id.toLowerCase()}_a`,
-            value: f.action,
-          },
-          {
-            name: `${queryPrefix}${f.id.toLowerCase()}_v`,
-            value: f.value,
-          },
-        ];
-      })
-      .SelectMany((l: Array<{ name: string; value: unknown }>) => l)
-      .ToArray();
-
-    wrkFilters.forEach((filter: { name: string; value: any }) => {
-      query[filter.name] = filter.value;
-    });
-
-    // @ts-ignore
-    if (this.$route) {
-      // @ts-ignore
-      var retValue = !DeepEqual(this.$route.query, query);
-      if (!retValue) {
-        return retValue;
-      }
-
-      // @ts-ignore
-      return this.$router
-        .push({
-          query: query,
-        })
-        .then(() => false)
-        .catch((err: { name: string }) => {
-          if (err.name != "NavigationDuplicated") {
-            throw err;
-          }
-          return true;
-        });
-    }
-
-    return false;
-  }
-
-  created(): void {
-    this.processor = new Processor(
-      this.columns,
-      [],
-      this.page,
-      this.pageSize,
-      "",
-      SortDirection.Descending
-    );
-    
-    // @ts-ignore
-    if (this.$route) {
-      this.querychanged();
-    }
-
-    Vue.set(this, "processor", this.processor);
-  }
-
-  mounted(): void {
-    this.$refs.dataTable.page = this.pageModel
-  }
-
-  @Watch('fetchingData')
-  emitFetchingDataForCustomLoaders(val: boolean) {
-    this.$emit('fetching-data', val);
-  }
-
-  @Watch('fetchRequired')
-  fetchRequiredChanged(to: boolean, from: boolean) {
-    if (to === true) {
-      this.requestDataLoad();
-    }
-  }
-
-  @Watch("$route.query")
-  querychanged() {
-    if (this.bindToQueryString) {
-      let hasChanged = false;
-      var queryPrefix = this.tableId !== "" ? `${this.tableId}_` : "";
-
-      // @ts-ignore
-      const page = this.$route.query[`${queryPrefix}page`];
-      // @ts-ignore
-      const pageSize = this.$route.query[`${queryPrefix}pagesize`];
-      if (page !== `${this.pageModel}` || pageSize !== `${this.pageSize}`) {
-        hasChanged = true;
-
-        this.pageModel = Number.parseInt(`${page ?? this.page}`);
-        if (isNaN(this.pageModel)) {
-          this.pageModel = 1;
-        };
-        
-        let lclPageSize = Number.parseInt(`${pageSize || this.pageSize}`);
-        if (isNaN(lclPageSize)) {
-          lclPageSize = this.pageSize;
-        };
-
-        this.processor.setPagination(this.pageModel, lclPageSize)
-      }
-
-      // @ts-ignore
-      const sort = this.$route.query[`${queryPrefix}sort`];
-      // @ts-ignore
-      const sortDir = this.$route.query[`${queryPrefix}sort_dir`];
-      if (this.sort !== sort || this.sortDir !== sortDir) {
-        hasChanged = true;
-
-        this.processor.setSort(
-          `${sort ?? this.sort}`,
-          // webpack dies when importing ESortDir :/
-          sortDir === "Asc"
-            ? SortDirection.Ascending
-            : SortDirection.Descending
-        );
-      }
-
-      this.columnFilters.forEach(cf => {
-        // @ts-ignore
-        const queryActionParam = this.$route.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
-        // @ts-ignore
-        const queryValueParam = this.$route.query[`${queryPrefix}${cf.id.toLowerCase()}_v`]
-        
-        if (queryActionParam === undefined || queryValueParam === undefined) {
-          cf.action = cf.action;
-          cf.value = undefined;
-          return;
-        }
-
-        if (!Array.isArray(queryActionParam) && queryActionParam != cf.action) {
-          cf.action = Comparator[queryActionParam as keyof typeof Comparator];
-          hasChanged = true;
-        }
-        if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
-          hasChanged = true;
-          cf.value = queryValueParam
-        }
-      })
-      
-      if (hasChanged) {
-        this.requestDataLoad();
-      }
-    }
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 .t-row {
