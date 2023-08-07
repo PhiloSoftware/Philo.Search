@@ -1,4 +1,4 @@
-import Table from "./Table/Table.vue";
+import PsTable from "./table/PsTable.vue";
 import {
   DataColumn,
   DataColumnFilterValue,
@@ -18,6 +18,6 @@ export {
   FilterSet,
   SortDirection,
   ColumnFilterType,
-  Table,
+  PsTable,
   Comparator
 }

@@ -5,21 +5,22 @@ import typescript from "rollup-plugin-typescript2";
 import scss from 'rollup-plugin-scss'
 import vue from "rollup-plugin-vue";
 
-import packageJson from "./package.json";
+import packageJson from "./package.json"  assert {type: 'json'};;
+const outdir = 'dist'
 
 export default {
   input: "src/index.ts",
   output: [
     {
-      file: packageJson.main,
+      file: `${outdir}/${packageJson.main}`,
       format: "cjs",
       sourcemap: true
-    },
-    {
-      file: packageJson.module,
-      format: "esm",
-      sourcemap: true
-    }
+    }//,
+    // {
+    //   file: `${outdir}/${packageJson.module}`,
+    //   format: "esm",
+    //   sourcemap: true
+    // }
   ],
-  plugins: [ vue(), peerDepsExternal(), resolve(), commonjs(), typescript(), scss()]
+  plugins: [ commonjs(), vue(), peerDepsExternal(), resolve(), typescript(), scss()]
 };

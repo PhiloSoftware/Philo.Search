@@ -568,7 +568,7 @@ if (route?.query) {
             class="pagination"
           ></datatable-pager>
         </div>
-        <div :class="colClass" class="pagecount">
+        <div v-if="pagingInfo" :class="colClass" class="pagecount">
           <span class="p-2 text-primary"
             >[{{ pagingInfo.currentIdx }} - {{ pagingInfo.currentMaxIdx }}] of
             {{ pagingInfo.totalRows }}</span

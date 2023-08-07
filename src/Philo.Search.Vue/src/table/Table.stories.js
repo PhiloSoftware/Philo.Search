@@ -1,4 +1,4 @@
-import Table from "./Table.vue";
+import Table from "./PsTable.vue";
 import StoryRouter from '../router'
 
 export default {

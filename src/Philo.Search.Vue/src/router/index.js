@@ -69,10 +69,15 @@ const storyRouterDecorator = (links = {}, routerProps = {}) => {
     });
 
     const WrappedComponent = story();
+
     return Vue.extend({
       router,
       components: { WrappedComponent },
       template: '<wrapped-component/>',
+      provide: {
+        router: router,
+        route: router.currentRoute
+      },
       beforeDestroy: function() {
         // Remove the afterEach callback from the router list to not
         // accumulate callbacks called for every route action (in practice
