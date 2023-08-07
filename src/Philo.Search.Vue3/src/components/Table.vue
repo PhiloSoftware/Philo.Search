@@ -17,7 +17,6 @@ import { debounce } from "./DataTable/utils/helpers";
 const props = defineProps<{
   tableId?: string,
   theme?: string,
-  rowClickable?: boolean,
   bindToQueryString?: boolean,
   sort?: string,
   sortDir?: SortDirection
@@ -38,7 +37,7 @@ const processor = ref(new Processor(
   props.page ?? 1,
   props.pageSize ?? 20,
   props.sort ?? "",
-  props.sortDir ?? SortDirection.Desc
+  props.sortDir ?? SortDirection.Descending
 ))
 
 const rows = ref<any[]>([])
@@ -88,6 +87,7 @@ const loadData = async (query: {
     return
   }
 
+  
   const filter = processor.value.doSearch();
   if (props.bindToQueryString) {
     if (await filterChanged(filter)) {
@@ -97,13 +97,18 @@ const loadData = async (query: {
   }
 
   // this.$emit("filter-change", filter);
-  const res = await props.fetchRows(filter)
-  rows.value = res.rows
-  pagination.value = { 
-    ...pagination.value,
-    page: filter.pageNumber,
-    total: res.totalRowCount,
-    per_page: filter.pageSize,
+  if (props.fetchRows) {
+    const res = await props.fetchRows(filter)
+    rows.value = res.rows
+    pagination.value = { 
+      ...pagination.value,
+      page: filter.pageNumber,
+      total: res.totalRowCount,
+      per_page: filter.pageSize,
+    }
+  }
+  else {
+    console.log('cannot fetch data as no func supplied')
   }
   fetchingData.value = false;
 
@@ -119,9 +124,9 @@ const loadDataWithLastQuery = async() => {
     processor.value.setSort('', SortDirection.Ascending)
   }
   return loadData({
-    page: pagination.value.page,
+    page: pagination.value.page ?? 1,
     search: "",
-    per_page: pagination.value.per_page
+    per_page: pagination.value.per_page ?? 15
   })
 }
 
@@ -133,8 +138,11 @@ const router = routerLocator ? routerLocator() : undefined;
 const routeLocator = props.bindToQueryString ? inject('route', () => useRoute()) : undefined;
 const route  = routeLocator ? routeLocator() : undefined;
 
-const populateFiltersFromQuery = () => {
-  if (props.bindToQueryString) {
+const populateFiltersFromQuery = async () => {
+  if (!hasMounted.value) {
+    return
+  }
+  if (props.bindToQueryString && route) {
     let hasChanged = false;
     var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
 
@@ -150,7 +158,7 @@ const populateFiltersFromQuery = () => {
       
       let lclPageSize = Number.parseInt(`${pageSize || props.pageSize}`);
       if (isNaN(lclPageSize)) {
-        lclPageSize = props.pageSize;
+        lclPageSize = props.pageSize ?? 15;
       };
 
       processor.value.setPagination(pagination.value.page, lclPageSize)
@@ -164,8 +172,8 @@ const populateFiltersFromQuery = () => {
       processor.value.setSort(
         `${sort ?? props.sort}`,
         sortDir === "Asc"
-          ? SortDirection.Asc
-          : SortDirection.Desc
+          ? SortDirection.Ascending
+          : SortDirection.Descending
       );
     }
 
@@ -185,7 +193,7 @@ const populateFiltersFromQuery = () => {
       }
       if (!Array.isArray(queryValueParam) && queryValueParam != cf.value) {
         hasChanged = true;
-        cf.value = queryValueParam
+        cf.value = `${queryValueParam}`
       }
     })
     
@@ -201,8 +209,11 @@ watch(() => props.fetchRequired, (nval: boolean) => {
 
 if (route) {
   
-  watch(() => route.query, () => {
-    const hasChanged = populateFiltersFromQuery()
+  watch(() => route.query, async () => {
+    if (!hasMounted.value) {
+      return;
+    }
+    const hasChanged = await populateFiltersFromQuery()
     
     if (hasChanged) {
       requestDataLoad();
@@ -210,10 +221,10 @@ if (route) {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   hasBeenUnmounted.value = false
   hasMounted.value = true
-  populateFiltersFromQuery()
+  await populateFiltersFromQuery()
   requestDataLoad()
 })
 
@@ -364,7 +375,9 @@ const btnClass = computed(() => {
 
 const columnFilterType = ColumnFilterType;
 
-
+const asBool = (val: string) => {
+  return val.toLowerCase() === 'true'
+}
 </script>
 
 <template>
@@ -419,7 +432,7 @@ const columnFilterType = ColumnFilterType;
                           <select
                             v-model="filter.value"
                             :name="filter.id"
-                            :multiple="filter.props.multiple"
+                            :multiple="asBool(filter.props.multiple)"
                             class="w-100"
                             @change="requestDataLoad"
                           >
@@ -462,10 +475,10 @@ const columnFilterType = ColumnFilterType;
                           >
                             <option
                               v-if="filter.nullable === true"
-                              :value="null"
+                              :value="undefined"
                             ></option>
-                            <option :value="true">Yes</option>
-                            <option :value="false">No</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
                           </select>
                         </slot>
                       </template>

@@ -17,7 +17,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'deep-equal',
-        'moment',
         'vue',
       ],
       output: {
@@ -25,7 +24,6 @@ export default defineConfig({
         // for externalized deps
         globals: {
           vue: 'Vue',
-          moment: 'moment'
         }
       }
     }

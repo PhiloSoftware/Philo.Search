@@ -7,6 +7,9 @@ module.exports = {
         "./src/**/*.{vue,js,ts,jsx,tsx}",
         "./lib/**/*.{vue,js,ts,jsx,tsx}",
     ],
+    corePlugins: {
+        preflight: false,
+    },
     prefix: "dt-",
     presets: [],
     darkMode: false, // or 'media' or 'class'

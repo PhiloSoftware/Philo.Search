@@ -216,8 +216,8 @@ doFetch,
 );
 
 
-var route = inject<Route>('route')
-var router = inject<VueRouter>('router')
+var route = inject<Route | undefined>('route', undefined)
+var router = inject<VueRouter | undefined>('router', undefined)
 
 const filterChanged = (filter: FilterSet) => {
   var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
