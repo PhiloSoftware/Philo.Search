@@ -1,4 +1,4 @@
-import * as moment from "moment";
+import { DateTime } from 'luxon'
 import {
   ColumnFilterType,
   ColumnFilterValue,
@@ -185,7 +185,7 @@ export default class Processor {
             retValue = "";
           }
           if (cf.type === ColumnFilterType.unixdate && cf.value) {
-            retValue = `${moment(cf.value).unix()}`;
+            retValue = `${DateTime.fromISO(cf.value).toUnixInteger()}`;
           }
 
           const returnVal: Filter = {
@@ -269,7 +269,7 @@ export default class Processor {
             retValue = "";
           }
           if (cf.type === ColumnFilterType.unixdate && cf.value) {
-            retValue = `${moment(cf.value).unix()}`;
+            retValue = `${DateTime.fromISO(cf.value).toUnixInteger()}`;
           }
         }
 

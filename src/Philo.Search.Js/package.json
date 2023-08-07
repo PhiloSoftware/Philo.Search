@@ -1,6 +1,6 @@
 {
   "name": "philo-search-core",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "author": "Philo Software",
   "license": "ISC",
   "description": "Search datasets with filters",
@@ -19,6 +19,7 @@
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
+    "@types/luxon": "^3.3.1",
     "@types/jest": "^27.0.3",
     "jest": "^27.3.1",
     "prettier": "^2.5.0",
@@ -31,6 +32,6 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "moment": "^2.29.1"
+    "luxon": "^3.3.0"
   }
 }
