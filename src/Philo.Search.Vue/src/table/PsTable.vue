@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import Vue, { PropType, computed, inject, onMounted, ref, watch } from "vue";
+import Vue, { PropType, computed, inject, onBeforeMount, onMounted, ref, watch } from "vue";
 import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
-import { asEnumerable } from "linq-es2015";
 import { Dictionary, Route, VueRouter } from "vue-router/types/router";
 import { IDataFnParams, VuejsDatatableFactory } from "vuejs-datatable";
 import Processor from "philo-search-core/lib/processor";
@@ -45,7 +44,7 @@ const props = defineProps({
     required: false
   },
   sortDir: {
-    type: String,
+    type: Object as PropType<SortDirection>,
     default: "Descending",
     required: false
   },
@@ -84,8 +83,8 @@ const processor = ref<Processor>(
     [],
     props.page,
     props.pageSize,
-    "",
-    SortDirection.Descending
+    props.sort,
+    props.sortDir
   ));
 
 const dataTable = ref<PsVueDataTable<{}>>();
@@ -95,6 +94,8 @@ const fetchingData = ref(false);
 const showFilter = ref(false);
 const pageModel = ref(props.page);
 const items = ref<Record<string, any>[]>([]);
+const loaded = ref(false)
+const ready = ref(false)
 
 const pagingInfo = ref({
   currentIdx: 0,
@@ -147,9 +148,8 @@ const columnFilters = computed(() => {
 });
 
 const visibleColumns = computed(() => {
-  return asEnumerable(processor.value.columns)
-    .Where((c) => c.visible !== false)
-    .ToArray();
+  return processor.value.columns
+    .filter(c => c.visible !== false)
 })
 
 const toggleFilterShow = () => {
@@ -171,17 +171,33 @@ var emit = defineEmits([
 const doFetch = async (args: IDataFnParams<{}>) => {
   fetchingData.value = true;
 
-  if (args && args.sortBy !== null) {
-    processor.value.setSort(
-      args.sortBy,
-      // webpack dies when importing ESortDir :/
-      args.sortDir?.toString() === "asc"
-        ? SortDirection.Ascending
-        : SortDirection.Descending
-    );
-  }
+  /*
+    when the data table loads, it sends through args of page 1 even 
+    though we bind the actual page number before we mount it.
+    So for the first time it loads, we ignore the args it provides.
+  */
+  if (loaded.value && args) {
+    if (args.sortBy !== null)  {
+      processor.value.setSort(
+        args.sortBy,
+        // webpack dies when importing ESortDir :/
+        args.sortDir?.toString() === "asc"
+          ? SortDirection.Ascending
+          : SortDirection.Descending
+      );
+    }
 
-  processor.value.setPagination(args.page, args.perPage);
+    processor.value.setPagination(args.page, args.perPage);
+  }
+  else if (dataTable.value) {
+    var colToSort = dataTable.value.normalizedColumns.filter(c => c.field === processor.value.sortBy)
+    if (colToSort.length) {
+      dataTable.value?.setSortDirectionForColumn(
+        processor.value.sortDir === SortDirection.Ascending ? "asc" : "desc", 
+        colToSort[0]
+      )
+    }
+  }
 
   const filter = processor.value.doSearch();
   if (props.bindToQueryString) {
@@ -192,6 +208,8 @@ const doFetch = async (args: IDataFnParams<{}>) => {
   emit("filter-change", filter);
 
   var rowRes = await props.fetchRows(filter);
+
+  loaded.value = true
 
   emit("fetchRequired", false);
 
@@ -211,8 +229,8 @@ const doFetch = async (args: IDataFnParams<{}>) => {
 }
 
 const fetchData = debounce(
-doFetch,
-400
+  doFetch,
+  400
 );
 
 
@@ -232,11 +250,11 @@ const filterChanged = (filter: FilterSet) => {
     query[`${queryPrefix}sort_dir`] = filter.sortDir;
   }
 
-  const wrkFilters = asEnumerable(columnFilters.value)
-    .Where((f: DataColumnFilterValue) => {
+  const wrkFilters = columnFilters.value
+    .filter((f: DataColumnFilterValue) => {
       return f.value !== undefined && f.value !== '';
     })
-    .Select((f: DataColumnFilterValue) => {
+    .map((f: DataColumnFilterValue) => {
       return [
         {
           name: `${queryPrefix}${f.id.toLowerCase()}_a`,
@@ -248,8 +266,7 @@ const filterChanged = (filter: FilterSet) => {
         },
       ];
     })
-    .SelectMany((l: Array<{ name: string; value: unknown }>) => l)
-    .ToArray();
+    .flatMap((l: Array<{ name: string; value: unknown }>) => l)
 
   wrkFilters.forEach((filter: { name: string; value: any }) => {
     query[filter.name] = filter.value;
@@ -288,25 +305,8 @@ const filterChanged = (filter: FilterSet) => {
   //   Vue.set(this, "processor", this.processor);
   // }
 
-onMounted(() => {
-  if (dataTable.value) {
-    dataTable.value.page = pageModel.value
-  }
-})
-
-watch(() => fetchingData, (to) => {
-  emit('fetching-data', to)
-})
-
-watch(() => props.fetchRequired, (to) => {
-  if (to === true) {
-    requestDataLoad();
-  }
-})
-
-if (route?.query) {
-  watch(() => route?.query, (to) => {
-    if (props.bindToQueryString && route) {
+const pullDataFromQueryString = () => {
+  if (props.bindToQueryString && route) {
       let hasChanged = false;
       var queryPrefix = props.tableId !== "" ? `${props.tableId}_` : "";
 
@@ -332,15 +332,15 @@ if (route?.query) {
       const sortDir = route.query[`${queryPrefix}sort_dir`];
       if (props.sort !== sort || props.sortDir !== sortDir) {
         hasChanged = true;
-
-        processor.value.setSort(
-          `${sort ?? props.sort}`,
-          // webpack dies when importing ESortDir :/
-          sortDir === "Asc"
-            ? SortDirection.Ascending
-            : SortDirection.Descending
-        );
       }
+
+      processor.value.setSort(
+        `${sort ?? props.sort}`,
+        // webpack dies when importing ESortDir :/
+        sortDir === "Ascending"
+          ? SortDirection.Ascending
+          : SortDirection.Descending
+      );
 
       columnFilters.value.forEach(cf => {
         const queryActionParam = route?.query[`${queryPrefix}${cf.id.toLowerCase()}_a`]
@@ -367,6 +367,37 @@ if (route?.query) {
       }
     }
 
+    ready.value = true
+}
+
+onBeforeMount(() => {
+  ready.value = false
+  loaded.value = false
+
+  if (props.bindToQueryString) {
+    return pullDataFromQueryString()
+  }
+})
+
+onMounted(() => {
+  if (dataTable.value) {
+    dataTable.value.page = pageModel.value
+  }
+})
+
+watch(() => fetchingData, (to) => {
+  emit('fetching-data', to)
+})
+
+watch(() => props.fetchRequired, (to) => {
+  if (to === true) {
+    requestDataLoad();
+  }
+})
+
+if (route?.query) {
+  watch(() => route?.query, (to) => {
+    return pullDataFromQueryString()
   })
 }
 </script>
@@ -530,51 +561,55 @@ if (route?.query) {
           </div>
         </div>
       </div>
-      <div :class="rowClass">
-        <div :class="colClass">
-          <datatable
-            ref="dataTable"
-            :name="tableId"
-            :columns="visibleColumns"
-            :data="fetchData"
-            :page="pageModel"
-            :perPage="pageSize"
-            :waitForPager="true"
-            responsive
-            class="filteredTable"
-          >
-            <template v-slot:default="{ row }">
-              <slot name="row" v-bind="row">
-                <tr @click="rowClickable ? $emit('rowclick', row) : null" :class="rowClickable ? 'hover' : ''">
-                  <td v-for="col in visibleColumns" :key="col.field">
-                    <slot
-                      :name="`cell-${col.field}`"
-                      v-bind="{ col, row, value: row[col.field] }"
-                    >
-                      {{ row[col.field] }}
-                    </slot>
-                  </td>
-                </tr>
-              </slot>
-            </template>
-          </datatable>
+      <template v-if="ready || !props.bindToQueryString">
+        <div :class="rowClass">
+          <div :class="colClass">
+            <datatable
+              ref="dataTable"
+              :name="tableId"
+              :columns="visibleColumns"
+              :data="fetchData"
+              :page.sync="pageModel"
+              :perPage="pageSize"
+              :waitForPager="true"
+              :sortBy="sort"
+              :sortDir="sortDir == 'Descending' ? 'Desc' : 'Asc'"
+              responsive
+              class="filteredTable"
+            >
+              <template v-slot:default="{ row }">
+                <slot name="row" v-bind="row">
+                  <tr @click="rowClickable ? $emit('rowclick', row) : null" :class="rowClickable ? 'hover' : ''">
+                    <td v-for="col in visibleColumns" :key="col.field">
+                      <slot
+                        :name="`cell-${col.field}`"
+                        v-bind="{ col, row, value: row[col.field] }"
+                      >
+                        {{ row[col.field] }}
+                      </slot>
+                    </td>
+                  </tr>
+                </slot>
+              </template>
+            </datatable>
+          </div>
         </div>
-      </div>
-      <div :class="rowClass">
-        <div :class="colClass">
-          <datatable-pager
-            :table="tableId"
-            type="abbreviated"
-            class="pagination"
-          ></datatable-pager>
+        <div :class="rowClass">
+          <div :class="colClass">
+            <datatable-pager
+              :table="tableId"
+              type="abbreviated"
+              class="pagination"
+            ></datatable-pager>
+          </div>
+          <div v-if="pagingInfo" :class="colClass" class="pagecount">
+            <span class="p-2 text-primary"
+              >[{{ pagingInfo.currentIdx }} - {{ pagingInfo.currentMaxIdx }}] of
+              {{ pagingInfo.totalRows }}</span
+            >
+          </div>
         </div>
-        <div v-if="pagingInfo" :class="colClass" class="pagecount">
-          <span class="p-2 text-primary"
-            >[{{ pagingInfo.currentIdx }} - {{ pagingInfo.currentMaxIdx }}] of
-            {{ pagingInfo.totalRows }}</span
-          >
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
