@@ -1,4 +1,5 @@
 ﻿using Philo.Search.Filter;
+using Philo.Search.Helper;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -25,10 +26,16 @@ namespace Philo.Search.Mapping
 
     public string Field => collection.GetField();
 
-    public IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortOrder)
+    public IOrderedQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortOrder)
     {
       // TODO - how do we build the sort expression??
-      return query;
+      return query.OrderByWithDirection(x => true, sortOrder);
+    }
+
+    public IOrderedQueryable<TEntityType> ApplyThenSort(IOrderedQueryable<TEntityType> query, SortOrder sortOrder)
+    {
+      // TODO - how do we build the sort expression??
+      return query.OrderByWithDirection(x => true, sortOrder);
     }
 
     public Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator)

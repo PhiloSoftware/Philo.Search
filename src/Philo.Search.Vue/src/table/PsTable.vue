@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Vue, { PropType, computed, inject, onBeforeMount, onMounted, ref, watch } from "vue";
+import Vue, { PropType, computed, inject, onBeforeMount, onMounted, ref, watch, useSlots } from "vue";
 import { debounce } from "ts-debounce";
 import DeepEqual from "deep-equal";
 import { Dictionary, Route, VueRouter } from "vue-router/types/router";
@@ -75,6 +75,12 @@ const props = defineProps({
     default: [],
     required: true
   },
+})
+
+const slots = useSlots()
+
+const hasControls = computed(() => {
+  return slots['controls'] && !!slots['controls']()
 })
 
 const processor = ref<Processor>(
@@ -539,7 +545,10 @@ if (route?.query) {
             </div>
           </div>
         </transition>
-        <div :class="colClass" class="t-tiny-col t-ml-auto t-text-right">
+        <div v-if="hasControls" :class="colClass" class="t-tiny-col t-ml-auto t-text-right">
+          <slot name="controls"></slot>
+        </div>
+        <div class="t-tiny-col t-text-right" :class="{ 't-ml-auto': !hasControls, colClass: true }">
           <div class="reload">
             <svg
               aria-hidden="true"

@@ -89,7 +89,10 @@ namespace Philo.Search
       {
         var mapping = mappings.GetMapping(filter.SortBy);
 
-        return mapping.ApplySort(query, filter.SortDir ?? mappings.DefaultSort.SortOrder);
+        var sorted = mapping.ApplySort(query, filter.SortDir ?? mappings.DefaultSort.SortOrder);
+
+        return mappings.DefaultSort.Mapping.ApplyThenSort(sorted, filter.SortDir ?? mappings.DefaultSort.SortOrder);
+
       }
 
       var defaultSort = mappings.DefaultSort;

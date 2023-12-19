@@ -9,7 +9,8 @@ namespace Philo.Search.Mapping
   {
     bool IsDefaultSortFilter { get; }
     string Field { get; }
-    IQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortBy);
+    IOrderedQueryable<TEntityType> ApplySort(IQueryable<TEntityType> query, SortOrder sortBy);
+    IOrderedQueryable<TEntityType> ApplyThenSort(IOrderedQueryable<TEntityType> query, SortOrder sortBy);
     Expression<Func<TEntityType, bool>> GetFilterLambda(string value, Comparator comparator);
   }
 }
