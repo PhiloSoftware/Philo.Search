@@ -18,16 +18,18 @@ const Template = (args, { argTypes }) => ({
     :fetchRows='fetchRows'
     :bindToQueryString='bindToQueryString'
     :rowClickable="rowClickable"
+    :filterOpenDefault="true"
+    focusFilterOnOpen="firstName"
   >
     <template v-slot:cell='{ col, row, value }'>
       {{ value }}
     </template>
-    <template v-slot:field-text='{ filter, change }'>
+    <template v-slot:field-text='{ filter, change, filterId }'>
       <div>
         {{filter.label}}
       </div>  
       <div>
-        <input v-model="filter.value" @keyup="change" />
+        <input v-model="filter.value" :id="filterId" @keyup="change" />
       </div>
     </template>
   </Table>`,

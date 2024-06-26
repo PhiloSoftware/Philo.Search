@@ -75,6 +75,16 @@ const props = defineProps({
     default: [],
     required: true
   },
+  filterOpenDefault: {
+    type: Boolean,
+    default: false,
+    required: false
+  },
+  focusFilterOnOpen: {
+    type: String,
+    default: undefined,
+    required: false
+  }
 })
 
 const slots = useSlots()
@@ -97,7 +107,7 @@ const dataTable = ref<PsVueDataTable<{}>>();
 
 const dataLoadFailed = ref(false);
 const fetchingData = ref(false);
-const showFilter = ref(false);
+const showFilter = ref(props.filterOpenDefault);
 const pageModel = ref(props.page);
 const items = ref<Record<string, any>[]>([]);
 const loaded = ref(false)
@@ -160,6 +170,12 @@ const visibleColumns = computed(() => {
 
 const toggleFilterShow = () => {
     showFilter.value = !showFilter.value;
+
+    if (showFilter.value) {
+      setTimeout(() => {
+        focusDefaultFilter();
+      }, 500)
+    }
   }
 
 const requestDataLoad = async () => {
@@ -385,9 +401,31 @@ onBeforeMount(() => {
   }
 })
 
+const focusDefaultFilter = () => {
+  if (!props.filterOpenDefault) return;
+
+  var filterId = getFilterId(props.focusFilterOnOpen)
+
+  var el = document.getElementById(filterId);
+
+  if (el) {
+    el.focus()
+    console.log('focused')
+  }
+  else {
+    console.log(`${filterId} not found`)
+  }
+}
+
 onMounted(() => {
   if (dataTable.value) {
     dataTable.value.page = pageModel.value
+  }
+
+  if (props.filterOpenDefault) {
+    setTimeout(() => {
+      focusDefaultFilter();
+    }, 500)
   }
 })
 
@@ -405,6 +443,10 @@ if (route?.query) {
   watch(() => route?.query, (to) => {
     return pullDataFromQueryString()
   })
+}
+
+const getFilterId = (field: string) => {
+  return `${props.tableId ?? 'pstab'}_field_${field}`
 }
 </script>
 
@@ -428,10 +470,11 @@ if (route?.query) {
                 <template v-if="filter.options">
                   <slot
                     name="field-select" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <select
+                      :id="getFilterId(filter.field)"
                       v-model="filter.value"
                       :name="filter.id"
                       :multiple="!!filter.props.multiple"
@@ -450,10 +493,11 @@ if (route?.query) {
                 <template v-else-if="filter.type === ColumnFilterType.number">
                   <slot
                     name="field-number" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <input
+                      :id="getFilterId(filter.field)"
                       type="number"
                       v-model="filter.value"
                       :min="filter.props.min"
@@ -466,11 +510,12 @@ if (route?.query) {
                 <template v-else-if="filter.type === ColumnFilterType.bool">
                   <slot
                     name="field-bool" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <select
                       v-model="filter.value"
+                      :id="getFilterId(filter.field)"
                       :name="filter.id"
                       @change="requestDataLoad"
                     >
@@ -490,11 +535,12 @@ if (route?.query) {
                 >
                   <slot
                     name="field-date" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <input
                       type="date"
+                      :id="getFilterId(filter.field)"
                       v-model="filter.value"
                       :min="filter.props.min"
                       :max="filter.props.max"
@@ -505,11 +551,12 @@ if (route?.query) {
                 <template v-else-if="filter.type === ColumnFilterType.text">
                   <slot
                     name="field-text" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <input
                       type="text"
+                      :id="getFilterId(filter.field)"
                       v-model="filter.value"
                       @keyup="requestDataLoad"
                     />
@@ -518,11 +565,12 @@ if (route?.query) {
                 <template v-else-if="filter.type === ColumnFilterType.guid">
                   <slot
                     name="field-guid" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <input
                       type="text"
+                      :id="getFilterId(filter.field)"
                       v-model="filter.value"
                       @keyup="requestDataLoad"
                     />
@@ -531,11 +579,12 @@ if (route?.query) {
                 <template v-else>
                   <slot
                     name="field-default" 
-                    v-bind="{ filter, change: requestDataLoad }"
+                    v-bind="{ filter, change: requestDataLoad, filterId: getFilterId(filter.field) }"
                   >
                     <div class="label">{{ filter.label }}</div>
                     <input
                       type="text"
+                      :id="getFilterId(filter.field)"
                       v-model="filter.value"
                       @keyup="requestDataLoad"
                     />
